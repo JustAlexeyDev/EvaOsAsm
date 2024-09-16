@@ -2,19 +2,16 @@
 
 #include <stdint.h>
 
-// Объявления функций
 void list_files(char* video_memory);
 void create_directory(char* video_memory, const char* dir_name);
 
 extern "C" void kernel_main() {
-    // Инициализация видеорежима
     char* video_memory = (char*)0xB8000;
     for (int i = 0; i < 80 * 25; i++) {
         video_memory[i * 2] = ' ';
         video_memory[i * 2 + 1] = 0x07;
     }
 
-    // Вывод сообщения
     const char* msg = "Welcome to EvaOS!";
     int pos = 0;
     while (msg[pos]) {
@@ -23,22 +20,18 @@ extern "C" void kernel_main() {
         pos++;
     }
 
-    // Вывод списка файлов
     list_files(video_memory);
 
-    // Создание директории
     create_directory(video_memory, "NewDir");
 
-    // Бесконечный цикл
     while (1) {}
 }
 
-// Функция для вывода списка файлов
 void list_files(char* video_memory) {
     const char* files[] = {"file1.txt", "file2.txt", "dir1"};
     int num_files = sizeof(files) / sizeof(files[0]);
 
-    int row = 1; // Начинаем с 1 строки после сообщения
+    int row = 1; 
     for (int i = 0; i < num_files; i++) {
         const char* file = files[i];
         int pos = 0;
@@ -51,10 +44,8 @@ void list_files(char* video_memory) {
     }
 }
 
-// Функция для создания директории
 void create_directory(char* video_memory, const char* dir_name) {
-    // Просто выводим сообщение о создании директории
-    int row = 5; // Начинаем с 5 строки
+    int row = 5; 
     const char* msg = "Directory created: ";
     int pos = 0;
     while (msg[pos]) {
