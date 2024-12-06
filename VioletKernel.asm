@@ -9,6 +9,8 @@ touch_cmd db 'touch', 0
 view_cmd db 'view', 0
 del_cmd db 'del', 0
 
+ls_cmd db "list", 0
+
 unknown_cmd_msg db 'Unknown command', 0
 
 mkdir_msg db 'Directory created', 0
@@ -16,6 +18,7 @@ cd_msg db 'Directory changed', 0
 touch_msg db 'File created', 0
 view_msg db 'File viewed', 0
 del_msg db 'File or directory deleted', 0
+
 
 version db '0.1', 0
 
@@ -76,7 +79,6 @@ process_command:
     mov si, command_buffer
     mov di, clear_cmd
     call compare_strings
-    je .clear
 
     mov di, mkdir_cmd
     call compare_strings
@@ -100,6 +102,9 @@ process_command:
 
     mov si, unknown_cmd_msg
     call print_string
+
+    call print_newline
+
     ret
 
 .clear:
