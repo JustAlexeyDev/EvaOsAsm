@@ -8,8 +8,7 @@ cd_cmd db 'cd', 0
 touch_cmd db 'touch', 0
 view_cmd db 'view', 0
 del_cmd db 'del', 0
-
-ls_cmd db "list", 0
+ls_cmd db 'ls', 0
 
 unknown_cmd_msg db 'Unknown command', 0
 
@@ -18,7 +17,7 @@ cd_msg db 'Directory changed', 0
 touch_msg db 'File created', 0
 view_msg db 'File viewed', 0
 del_msg db 'File or directory deleted', 0
-
+ls_msg db 'Listing directory contents', 0
 
 version db '0.1', 0
 
@@ -79,6 +78,7 @@ process_command:
     mov si, command_buffer
     mov di, clear_cmd
     call compare_strings
+    je .clear
 
     mov di, mkdir_cmd
     call compare_strings
@@ -100,41 +100,54 @@ process_command:
     call compare_strings
     je .del
 
+    mov di, ls_cmd
+    call compare_strings
+    je .ls
+
     mov si, unknown_cmd_msg
     call print_string
-
-    call print_newline
-
     ret
 
 .clear:
     call clear_screen
     call set_cursor_top_left  ; Возвращаем курсор в начало
+    call print_newline        ; Переход на следующую строку
     ret
 
 .mkdir:
     mov si, mkdir_msg
     call print_string
+    call print_newline        ; Переход на следующую строку
     ret
 
 .cd:
     mov si, cd_msg
     call print_string
+    call print_newline        ; Переход на следующую строку
     ret
 
 .touch:
     mov si, touch_msg
     call print_string
+    call print_newline        ; Переход на следующую строку
     ret
 
 .view:
     mov si, view_msg
     call print_string
+    call print_newline        ; Переход на следующую строку
     ret
 
 .del:
     mov si, del_msg
     call print_string
+    call print_newline        ; Переход на следующую строку
+    ret
+
+.ls:
+    mov si, ls_msg
+    call print_string
+    call print_newline        ; Переход на следующую строку
     ret
 
 compare_strings:
