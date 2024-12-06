@@ -1,45 +1,65 @@
-; bootloader.asm
-
-BITS 16
-ORG 0x7C00
+org 0x7C00
+bits 16
 
 start:
+    ; Инициализация сегментных регистров
     xor ax, ax
     mov ds, ax
     mov es, ax
 
-    mov ah, 0x00
-    mov al, 0x03
-    int 0x10
+    ; Установка стека
+    mov ss, ax
+    mov sp, 0x7C00
 
-    mov si, msg
+    ; Очистка экрана
+    call clear_screen
+
+    ; Установка курсора в верхний левый угол
+    call set_cursor_top_left
+
+    ; Вывод заголовка
+    mov si, header_msg
     call print_string
+    call print_newline
 
-    mov ah, 0x02   
-    mov al, 1      
-    mov ch, 0      
-    mov cl, 2       
-    mov dh, 0      
-    mov dl, 0      
-    mov bx, 0x1000 
-    mov es, bx
-    xor bx, bx
-    int 0x13        
+    ; Переход к основному коду
+    jmp 0x0000:0x7E00
 
-    jmp 0x1000:0x0000
+clear_screen:
+    mov ax, 0x0600
+    xor cx, cx
+    mov dx, 0x184F
+    mov bh, 0x07
+    int 0x10
+    ret
+
+set_cursor_top_left:
+    mov ah, 0x02
+    xor bh, bh
+    xor dx, dx
+    int 0x10
+    ret
 
 print_string:
     lodsb
     or al, al
-    jz done
+    jz .done
     mov ah, 0x0E
     int 0x10
     jmp print_string
 
-done:
+.done:
     ret
 
-msg db 'EvaOS Bootloader', 0
+print_newline:
+    mov ah, 0x0E
+    mov al, 0x0D
+    int 0x10
+    mov al, 0x0A
+    int 0x10
+    ret
+
+header_msg db 'Eva-OS VioletKernel - version 0.000.425', 0
 
 times 510-($-$$) db 0
 dw 0xAA55
