@@ -15,3 +15,7 @@ nasm -f bin -o bootloader.bin bootloader.asm
 Get-Content bootloader.bin, VioletKernel.bin | Set-Content EvaOS.bin  
 ```
 
+Запуск через QEMU
+```sh
+qemu-system-x86_64 -fda VioletKernel.bin
+``
