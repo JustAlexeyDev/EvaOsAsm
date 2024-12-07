@@ -22,8 +22,10 @@ qemu-system-x86_64 -fda VioletKernel.bin
 
 Стек технологий:
 ```json
-"Эмуляторы": "QEMU, Oracle VirtualMachine",
-"Языки": “C++ GCC (Violet-Kernel)”,
-"Программы": “GRUB, UltraISO, PowerShell, GIT”,
-"Компиляторы": “NASM(ASM ENV), mingw32(CPP ENV), msys2(Software Distribution and Building Platform)”,
+{
+ "Эмуляторы": "QEMU, Oracle VirtualMachine",
+ "Языки": “C++ GCC (Violet-Kernel)”,
+ "Программы": “GRUB, UltraISO, PowerShell, GIT”,
+ "Компиляторы": “NASM(ASM ENV), mingw32(CPP ENV), msys2(Software Distribution and Building Platform)”
+}
 ```
