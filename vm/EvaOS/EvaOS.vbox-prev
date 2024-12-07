@@ -6,18 +6,20 @@
 ** Use VBoxManage or the VirtualBox Manager GUI to make changes.
 -->
 <VirtualBox xmlns="http://www.virtualbox.org/" version="1.19-windows">
-  <Machine uuid="{d070055c-cb30-48e5-95cd-0136ebd20066}" name="EvaOS" OSType="Other" snapshotFolder="Snapshots" lastStateChange="2024-12-06T17:03:40Z">
+  <Machine uuid="{d070055c-cb30-48e5-95cd-0136ebd20066}" name="EvaOS" OSType="Other" snapshotFolder="Snapshots" lastStateChange="2024-12-06T17:35:23Z">
     <MediaRegistry>
       <HardDisks>
         <HardDisk uuid="{202b70c2-c2df-4ec3-8027-56c99cb7b6b8}" location="EvaOS.vdi" format="VDI" type="Normal"/>
       </HardDisks>
       <DVDImages>
         <Image uuid="{757063c9-9f5d-42bb-b818-941cf608c914}" location="D:/Projects/EvaOsAsm/vm/20241207_015535.iso"/>
+        <Image uuid="{291c7ef9-b41b-41ab-87c4-ca4f36d023df}" location="D:/Projects/EvaOsAsm/vm/20241207_021907.iso"/>
+        <Image uuid="{fd5e6d04-f4b3-4bda-82d6-9819526ecd99}" location="D:/Projects/EvaOsAsm/vm/20241207_023403.iso"/>
       </DVDImages>
     </MediaRegistry>
     <ExtraData>
       <ExtraDataItem name="GUI/LastCloseAction" value="PowerOff"/>
-      <ExtraDataItem name="GUI/LastNormalWindowPosition" value="45,240,1920,1009"/>
+      <ExtraDataItem name="GUI/LastNormalWindowPosition" value="510,308,720,443"/>
     </ExtraData>
     <Hardware>
       <Memory RAMSize="64"/>
@@ -41,20 +43,20 @@
       <AudioAdapter useDefault="true" driver="WAS" enabled="true" enabledOut="true"/>
       <Clipboard/>
       <GuestProperties>
-        <GuestProperty name="/VirtualBox/GuestAdd/GuiOnFocus" value="0" timestamp="1733504620256174100" flags="TRANSIENT, RDONLYGUEST"/>
-        <GuestProperty name="/VirtualBox/HostInfo/GUI/LanguageID" value="en_US" timestamp="1733504624257516000" flags="RDONLYGUEST"/>
-        <GuestProperty name="/VirtualBox/HostInfo/VBoxRev" value="165100" timestamp="1733504577020678402" flags="TRANSIENT, RDONLYGUEST"/>
-        <GuestProperty name="/VirtualBox/HostInfo/VBoxVer" value="7.1.4" timestamp="1733504577020678400" flags="TRANSIENT, RDONLYGUEST"/>
-        <GuestProperty name="/VirtualBox/HostInfo/VBoxVerExt" value="7.1.4" timestamp="1733504577020678401" flags="TRANSIENT, RDONLYGUEST"/>
-        <GuestProperty name="/VirtualBox/VMInfo/ResetCounter" value="1" timestamp="1733504605874240400" flags="TRANSIENT, RDONLYGUEST"/>
+        <GuestProperty name="/VirtualBox/GuestAdd/GuiOnFocus" value="0" timestamp="1733506536381576800" flags="TRANSIENT, RDONLYGUEST"/>
+        <GuestProperty name="/VirtualBox/HostInfo/GUI/LanguageID" value="en_US" timestamp="1733506536655320000" flags="RDONLYGUEST"/>
+        <GuestProperty name="/VirtualBox/HostInfo/VBoxRev" value="165100" timestamp="1733506523769315402" flags="TRANSIENT, RDONLYGUEST"/>
+        <GuestProperty name="/VirtualBox/HostInfo/VBoxVer" value="7.1.4" timestamp="1733506523769315400" flags="TRANSIENT, RDONLYGUEST"/>
+        <GuestProperty name="/VirtualBox/HostInfo/VBoxVerExt" value="7.1.4" timestamp="1733506523769315401" flags="TRANSIENT, RDONLYGUEST"/>
+        <GuestProperty name="/VirtualBox/VMInfo/ResetCounter" value="3" timestamp="1733506533759772100" flags="TRANSIENT, RDONLYGUEST"/>
       </GuestProperties>
       <StorageControllers>
         <StorageController name="IDE" type="PIIX4" PortCount="2" useHostIOCache="true" Bootable="true">
           <AttachedDevice type="HardDisk" hotpluggable="false" port="0" device="0">
             <Image uuid="{202b70c2-c2df-4ec3-8027-56c99cb7b6b8}"/>
           </AttachedDevice>
-          <AttachedDevice passthrough="false" type="DVD" hotpluggable="false" port="1" device="0">
-            <Image uuid="{757063c9-9f5d-42bb-b818-941cf608c914}"/>
+          <AttachedDevice passthrough="false" type="DVD" hotpluggable="false" port="0" device="1">
+            <Image uuid="{fd5e6d04-f4b3-4bda-82d6-9819526ecd99}"/>
           </AttachedDevice>
         </StorageController>
       </StorageControllers>
