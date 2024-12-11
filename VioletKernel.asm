@@ -1,5 +1,9 @@
 org 0x8000
 bits 16
+start:
+    mov si, kernelloaded_msg
+    call print_string 
+    call print_newline
 
 main_loop:
     mov si, kernelloaded_msg
