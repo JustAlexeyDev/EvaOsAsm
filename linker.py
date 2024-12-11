@@ -1,0 +1,1 @@
+open('EvaOS.bin', 'wb').write(open('bootloader.bin', 'rb').read() + open('VioletKernel.bin', 'rb').read())
