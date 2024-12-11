@@ -17,7 +17,6 @@ start:
 
     jmp 0x0000:0x8000 
 
-; Остальной код...
 
 clear_screen:
     mov ax, 0x0600
@@ -53,7 +52,7 @@ print_newline:
     int 0x10
     ret
 
-header_msg db 'Eva-OS VioletKernel - version 0.000.427', 0
+header_msg db 'Eva-OS VioletKernel - version 0.000.428', 0
 
 times 510-($-$$) db 0
 dw 0xAA55
