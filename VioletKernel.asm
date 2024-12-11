@@ -2,6 +2,8 @@ org 0x8000
 bits 16
 
 main_loop:
+    mov si, kernelloaded_msg
+    call print_string
     mov ah, 0x02
     xor bh, bh
     mov dh, 2
@@ -184,3 +186,5 @@ ls_msg db 'Listing directory contents', 0
 prompt db 'VKernel >', 0
 
 command_buffer times 64 db 0
+
+kernelloaded_msg db "VioletKernel is loaded and ready", 0
