@@ -2,7 +2,6 @@ org 0x8000
 bits 16
 
 main_loop:
-    ; Вывод заголовка и сообщения о загрузке ядра
     mov si, header_msg
     call print_string
     call print_newline
@@ -11,36 +10,34 @@ main_loop:
     call print_string
     call print_newline
 
-    ; Вывод приглашения
+    call print_newline
+
     mov si, prompt
     call print_string
 
-    ; Чтение команды
     call read_command
 
-    ; Обработка команды
     call process_command
 
-    ; Переход на новую строку
     call print_newline
 
-    ; Возврат курсора в начало строки для нового ввода
-    call set_cursor_top_left
 
-    ; Повторение цикла
+    ; ; DEBUG MODE
+    ; call print_registers
+    ; call print_newline
+    ; DEBUG MODE
+
     jmp main_loop
 
 .clear:
-    call clear_screen
-    call print_newline
-    call set_cursor_bottom  ; Установить курсор внизу экрана
+    call set_cursor_top_left 
     ret
 
 set_cursor_bottom:
     mov ah, 0x02
     xor bh, bh
-    mov dh, 24  ; Строка 24 (последняя строка экрана)
-    mov dl, 0   ; Столбец 0
+    mov dh, 24 
+    mov dl, 0   
     int 0x10
     ret
 
@@ -100,6 +97,7 @@ process_command:
     call print_string
     ret
 
+
 .clear:
     call clear_screen
     call print_newline
@@ -107,42 +105,36 @@ process_command:
     ret
 
 .mkdir:
-    ; Создание директории (в реальной системе это потребует доступа к файловой системе)
     mov si, mkdir_msg
     call print_string
     call print_newline       
     ret
 
 .cd:
-    ; Смена директории (в реальной системе это потребует доступа к файловой системе)
     mov si, cd_msg
     call print_string
     call print_newline        
     ret
 
 .touch:
-    ; Создание файла (в реальной системе это потребует доступа к файловой системе)
     mov si, touch_msg
     call print_string
     call print_newline       
     ret
 
 .view:
-    ; Просмотр файла (в реальной системе это потребует доступа к файловой системе)
     mov si, view_msg
     call print_string
     call print_newline       
     ret
 
 .del:
-    ; Удаление файла или директории (в реальной системе это потребует доступа к файловой системе)
     mov si, del_msg
     call print_string
     call print_newline       
     ret
 
 .ls:
-    ; Вывод содержимого директории (в реальной системе это потребует доступа к файловой системе)
     mov si, ls_msg
     call print_string
     call print_newline        
@@ -195,6 +187,110 @@ print_newline:
     int 0x10
     ret
 
+; DEBUG MODE
+
+; ; print_registers:
+;     ; Вывод значения регистра AX
+;     mov si, ax_msg
+;     call print_string
+;     mov ax, ax
+;     call print_hex
+;     call print_newline
+
+;     ; Вывод значения регистра BX
+;     mov si, bx_msg
+;     call print_string
+;     mov ax, bx
+;     call print_hex
+;     call print_newline
+
+;     ; Вывод значения регистра CX
+;     mov si, cx_msg
+;     call print_string
+;     mov ax, cx
+;     call print_hex
+;     call print_newline
+
+;     ; Вывод значения регистра DX
+;     mov si, dx_msg
+;     call print_string
+;     mov ax, dx
+;     call print_hex
+;     call print_newline
+
+;     ; Вывод значения регистра SI
+;     mov si, si_msg
+;     call print_string
+;     mov ax, si
+;     call print_hex
+;     call print_newline
+
+;     ; Вывод значения регистра DI
+;     mov si, di_msg
+;     call print_string
+;     mov ax, di
+;     call print_hex
+;     call print_newline
+
+;     ; Вывод значения регистра DS
+;     mov si, ds_msg
+;     call print_string
+;     mov ax, ds
+;     call print_hex
+;     call print_newline
+
+;     ; Вывод значения регистра ES
+;     mov si, es_msg
+;     call print_string
+;     mov ax, es
+;     call print_hex
+;     call print_newline
+
+;     ; Вывод значения регистра SS
+;     mov si, ss_msg
+;     call print_string
+;     mov ax, ss
+;     call print_hex
+;     call print_newline
+
+;     ; Вывод значения регистра SP
+;     mov si, sp_msg
+;     call print_string
+;     mov ax, sp
+;     call print_hex
+;     call print_newline
+
+;     ret
+
+; ax_msg db 'AX: ', 0
+; bx_msg db 'BX: ', 0
+; cx_msg db 'CX: ', 0
+; dx_msg db 'DX: ', 0
+; si_msg db 'SI: ', 0
+; di_msg db 'DI: ', 0
+; ds_msg db 'DS: ', 0
+; es_msg db 'ES: ', 0
+; ss_msg db 'SS: ', 0
+; sp_msg db 'SP: ', 0
+
+; print_hex:
+;     pusha
+;     mov cx, 4  
+; .loop:
+;     rol ax, 4 
+;     mov bx, ax
+;     and bx, 0x000F 
+;     mov bl, [hex_chars + bx] 
+;     mov ah, 0x0E
+;     int 0x10
+;     loop .loop
+;     popa
+;     ret
+
+; hex_chars db '0123456789ABCDEF'
+
+; ALL COMMANDS
+
 clear_cmd db 'clear', 0
 mkdir_cmd db 'mkdir', 0
 cd_cmd db 'cd', 0
@@ -214,6 +310,6 @@ ls_msg db 'Listing directory contents', 0
 
 prompt db 'VKernel >', 0
 
-header_msg db 'Eva-OS VioletKernel - version 0.000.430', 0
-kernelloaded_msg db "VioletKernel is loaded and ready", 0
+header_msg db 'Eva-OS VioletKernel - version 0.000.431', 0
+kernelloaded_msg db "VioletKernel loaded", 0
 command_buffer times 128 db 0
