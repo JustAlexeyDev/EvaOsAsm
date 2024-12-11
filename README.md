@@ -12,7 +12,7 @@ nasm -f bin -o bootloader.bin bootloader.asm
 
 Линковка
 ```sh
-Get-Content bootloader.bin, VioletKernel.bin | Set-Content EvaOS.bin  
+python -c "open('EvaOS.bin', 'wb').write(open('bootloader.bin', 'rb').read() + open('VioletKernel.bin', 'rb').read())"
 ```
 
 Запуск через QEMU
