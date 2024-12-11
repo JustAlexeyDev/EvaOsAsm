@@ -15,8 +15,31 @@ start:
     call print_string
     call print_newline
 
-    jmp 0x0000:0x8000 
+    mov ax, 0x0000
+    mov es, ax
+    mov bx, 0x8000
+    mov ah, 0x02
+    mov al, 1 
+    mov ch, 0  
+    mov cl, 2 
+    mov dh, 0 
+    mov dl, 0x00 
+    int 0x13
 
+    jnc success
+    ; Disk read failed
+    mov si, error_msg
+    call print_string
+    jmp $
+
+    success:
+    ; Disk read succeeded
+    mov si, success_msg
+    call print_string
+    jmp 0x0000:0x8000
+
+    success_msg db 'Disk read success', 0
+    error_msg db 'Disk read error', 0
 
 clear_screen:
     mov ax, 0x0600
@@ -52,7 +75,7 @@ print_newline:
     int 0x10
     ret
 
-header_msg db 'Eva-OS VioletKernel - version 0.000.428', 0
+header_msg db 'Eva-OS VioletKernel - version 0.000.429', 0
 
 times 510-($-$$) db 0
 dw 0xAA55
