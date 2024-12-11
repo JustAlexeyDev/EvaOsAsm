@@ -1,28 +1,22 @@
-org 0x7E00
+org 0x8000
 bits 16
 
 main_loop:
-    ; Установка курсора
     mov ah, 0x02
     xor bh, bh
     mov dh, 2
     mov dl, 0
     int 0x10
 
-    ; Вывод приглашения
     mov si, prompt
     call print_string
 
-    ; Чтение команды
     call read_command
 
-    ; Обработка команды
     call process_command
 
-    ; Переход на новую строку
     call print_newline
 
-    ; Повтор цикла
     jmp main_loop
 
 read_command:
@@ -83,44 +77,44 @@ process_command:
 
 .clear:
     call clear_screen
-    call set_cursor_top_left  ; Возвращаем курсор в начало
-    call print_newline        ; Переход на следующую строку
+    call set_cursor_top_left 
+    call print_newline       
     ret
 
 .mkdir:
     mov si, mkdir_msg
     call print_string
-    call print_newline        ; Переход на следующую строку
+    call print_newline       
     ret
 
 .cd:
     mov si, cd_msg
     call print_string
-    call print_newline        ; Переход на следующую строку
+    call print_newline        
     ret
 
 .touch:
     mov si, touch_msg
     call print_string
-    call print_newline        ; Переход на следующую строку
+    call print_newline       
     ret
 
 .view:
     mov si, view_msg
     call print_string
-    call print_newline        ; Переход на следующую строку
+    call print_newline       
     ret
 
 .del:
     mov si, del_msg
     call print_string
-    call print_newline        ; Переход на следующую строку
+    call print_newline       
     ret
 
 .ls:
     mov si, ls_msg
     call print_string
-    call print_newline        ; Переход на следующую строку
+    call print_newline        
     ret
 
 compare_strings:
