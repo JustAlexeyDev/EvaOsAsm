@@ -1,29 +1,48 @@
 org 0x8000
 bits 16
-start:
-    mov si, kernelloaded_msg
-    call print_string 
-    call print_newline
 
 main_loop:
+    ; Вывод заголовка и сообщения о загрузке ядра
+    mov si, header_msg
+    call print_string
+    call print_newline
+
     mov si, kernelloaded_msg
     call print_string
-    mov ah, 0x02
-    xor bh, bh
-    mov dh, 2
-    mov dl, 0
-    int 0x10
+    call print_newline
 
+    ; Вывод приглашения
     mov si, prompt
     call print_string
 
+    ; Чтение команды
     call read_command
 
+    ; Обработка команды
     call process_command
 
+    ; Переход на новую строку
     call print_newline
 
+    ; Возврат курсора в начало строки для нового ввода
+    call set_cursor_top_left
+
+    ; Повторение цикла
     jmp main_loop
+
+.clear:
+    call clear_screen
+    call print_newline
+    call set_cursor_bottom  ; Установить курсор внизу экрана
+    ret
+
+set_cursor_bottom:
+    mov ah, 0x02
+    xor bh, bh
+    mov dh, 24  ; Строка 24 (последняя строка экрана)
+    mov dl, 0   ; Столбец 0
+    int 0x10
+    ret
 
 read_command:
     mov bx, 0
@@ -83,41 +102,47 @@ process_command:
 
 .clear:
     call clear_screen
-    call set_cursor_top_left 
-    call print_newline       
+    call print_newline
+    call set_cursor_bottom 
     ret
 
 .mkdir:
+    ; Создание директории (в реальной системе это потребует доступа к файловой системе)
     mov si, mkdir_msg
     call print_string
     call print_newline       
     ret
 
 .cd:
+    ; Смена директории (в реальной системе это потребует доступа к файловой системе)
     mov si, cd_msg
     call print_string
     call print_newline        
     ret
 
 .touch:
+    ; Создание файла (в реальной системе это потребует доступа к файловой системе)
     mov si, touch_msg
     call print_string
     call print_newline       
     ret
 
 .view:
+    ; Просмотр файла (в реальной системе это потребует доступа к файловой системе)
     mov si, view_msg
     call print_string
     call print_newline       
     ret
 
 .del:
+    ; Удаление файла или директории (в реальной системе это потребует доступа к файловой системе)
     mov si, del_msg
     call print_string
     call print_newline       
     ret
 
 .ls:
+    ; Вывод содержимого директории (в реальной системе это потребует доступа к файловой системе)
     mov si, ls_msg
     call print_string
     call print_newline        
@@ -189,6 +214,6 @@ ls_msg db 'Listing directory contents', 0
 
 prompt db 'VKernel >', 0
 
-command_buffer times 64 db 0
-
+header_msg db 'Eva-OS VioletKernel - version 0.000.430', 0
 kernelloaded_msg db "VioletKernel is loaded and ready", 0
+command_buffer times 128 db 0
