@@ -11,10 +11,6 @@ start:
     call clear_screen
     call set_cursor_top_left
 
-    mov si, header_msg
-    call print_string
-    call print_newline
-
     mov ax, 0x0000
     mov es, ax
     mov bx, 0x8000
@@ -30,16 +26,18 @@ start:
     ; Disk read failed
     mov si, error_msg
     call print_string
+    call print_newline
     jmp $
 
-    success:
+success:
     ; Disk read succeeded
     mov si, success_msg
     call print_string
-    jmp 0x0000:0x8000
+    call print_newline
+    jmp 0x8000  ; Jump to the kernel
 
-    success_msg db 'Disk read success', 0
-    error_msg db 'Disk read error', 0
+success_msg db 'Disk read success', 0
+error_msg db 'Disk read error', 0
 
 clear_screen:
     mov ax, 0x0600
@@ -74,8 +72,6 @@ print_newline:
     mov al, 0x0A
     int 0x10
     ret
-
-header_msg db 'Eva-OS VioletKernel - version 0.000.429', 0
 
 times 510-($-$$) db 0
 dw 0xAA55
