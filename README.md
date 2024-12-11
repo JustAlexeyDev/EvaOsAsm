@@ -24,8 +24,8 @@ qemu-system-x86_64 -fda EvaOS.bin
 ```json
 {
  "Эмуляторы": "QEMU, Oracle VirtualMachine",
- "Языки": "C++ GCC (Violet-Kernel)",
+ "Языки": "C++ GCC (Violet-Kernel), Python (runner)",
  "Программы": "GRUB, UltraISO, PowerShell, GIT",
- "Компиляторы": "NASM(ASM ENV), mingw32(CPP ENV), msys2(Software Distribution and Building Platform)"
+ "Компиляторы": "NASM(ASM ENV)"
 }
 ```
