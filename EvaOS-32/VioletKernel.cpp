@@ -4,66 +4,83 @@
 
 const int BUFFER_SIZE = 64;
 
-void clear_screen() {
-    std::cout << "\033[2J\033[1;1H"; 
-}
-
-void set_cursor_top_left() {
-    std::cout << "\033[H"; 
-}
-
 void print_string(const char* str) {
     std::cout << str;
 }
 
+void print_char(char c) {
+    std::cout << c;
+}
+
 void print_newline() {
-    std::cout << std::endl;
+    std::cout << '\r' << '\n';
+}
+
+void clear_screen() {
+    std::cout << "\033[H\033[2J"; // Escape sequence to clear the screen
 }
 
 bool compare_strings(const char* str1, const char* str2) {
-    return strcmp(str1, str2) == 0;
+    return std::strcmp(str1, str2) == 0;
 }
 
-void read_command(char* command_buffer) {
-    std::cin.getline(command_buffer, BUFFER_SIZE);
+void read_input(char* input_buffer) {
+    int index = 0;
+    char c;
+    while (index < BUFFER_SIZE - 1) {
+        std::cin.get(c);
+        if (c == '\r') {
+            break;
+        } else if (c == '\b') {
+            if (index > 0) {
+                index--;
+                print_char('\b');
+                print_char(' ');
+                print_char('\b');
+            }
+        } else {
+            input_buffer[index++] = c;
+            print_char(c);
+        }
+    }
+    input_buffer[index] = '\0'; // Null-terminate the string
+    print_newline();
 }
 
-void process_command(const char* command_buffer) {
-    if (compare_strings(command_buffer, "clear")) {
+void parse_command(const char* input_buffer) {
+    if (compare_strings(input_buffer, "help")) {
+        print_string("Commands: help, ls, mkdir, rmdir, send, clear, regstat");
+        print_newline();
+    } else if (compare_strings(input_buffer, "ls")) {
+        print_string("Listing directories...");
+        print_newline();
+    } else if (compare_strings(input_buffer, "mkdir")) {
+        print_string("Creating directory...");
+        print_newline();
+    } else if (compare_strings(input_buffer, "rmdir")) {
+        print_string("Removing directory...");
+        print_newline();
+    } else if (compare_strings(input_buffer, "send")) {
+        print_string(input_buffer + 5); // Assuming command is "send <message>"
+        print_newline();
+    } else if (compare_strings(input_buffer, "clear")) {
         clear_screen();
-        set_cursor_top_left();
-        print_newline();
-    } else if (compare_strings(command_buffer, "mkdir")) {
-        print_string("Directory created");
-        print_newline();
-    } else if (compare_strings(command_buffer, "cd")) {
-        print_string("Directory changed");
-        print_newline();
-    } else if (compare_strings(command_buffer, "touch")) {
-        print_string("File created");
-        print_newline();
-    } else if (compare_strings(command_buffer, "view")) {
-        print_string("File viewed");
-        print_newline();
-    } else if (compare_strings(command_buffer, "del")) {
-        print_string("File or directory deleted");
-        print_newline();
-    } else if (compare_strings(command_buffer, "ls")) {
-        print_string("Listing directory contents");
-        print_newline();
     } else {
         print_string("Unknown command");
+        print_newline();
     }
 }
 
 int main() {
-    char command_buffer[BUFFER_SIZE];
+    print_string("Eva-OS VioletKernel - version 0.005.441");
+    print_newline();
 
+    char input_buffer[BUFFER_SIZE];
     while (true) {
-        set_cursor_top_left();
-        print_string("VKernel > ");
-        read_command(command_buffer);
-        process_command(command_buffer);
+        print_newline();
+        print_string("DISK_A:/>");
+        read_input(input_buffer);
+        parse_command(input_buffer);
     }
 
     return 0;
