@@ -133,7 +133,7 @@ compare_strings:
     ret
 
 prompt db 'DISK_A:/>', 0
-header_msg db 'Eva-OS VioletKernel - version 0.003.435', 0
+header_msg db 'Eva-OS VioletKernel - version 0.004.436', 0
 
 unknown_cmd_msg db "Unknown command", 0
 help_msg db "Commands: help, ls, mkdir, rmdir, send", 0
