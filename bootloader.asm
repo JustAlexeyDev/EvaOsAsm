@@ -30,7 +30,6 @@ start:
     jmp $
 
 success:
-    ; Disk read succeeded
     mov si, success_msg
     call print_string
     call print_newline
