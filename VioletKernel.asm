@@ -1,10 +1,13 @@
 org 0x8000
 bits 16
 
-main_loop:
+start:
     mov si, header_msg
     call print_string
     call print_newline
+    jmp main_loop
+
+main_loop:
 
     ; mov si, kernelloaded_msg
     ; call print_string
@@ -119,7 +122,7 @@ compare_strings:
     ret
 
 prompt db 'USER INTERPUT >', 0
-header_msg db 'Eva-OS VioletKernel - version 0.002.432', 0
+header_msg db 'Eva-OS VioletKernel - version 0.003.435', 0
 kernelloaded_msg db "VioletKernel 16 BITS loaded", 0
 
 unknown_cmd_msg db "Unknown command", 0
