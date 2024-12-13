@@ -310,6 +310,6 @@ ls_msg db 'Listing directory contents', 0
 
 prompt db 'USER INTERPUT >', 0
 
-header_msg db 'Eva-OS VioletKernel - version 0.000.431', 0
+header_msg db 'Eva-OS VioletKernel - version 0.002.432', 0
 kernelloaded_msg db "VioletKernel loaded", 0
 command_buffer times 128 db 0
