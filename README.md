@@ -92,4 +92,3 @@ qemu-system-x86_64 -fda EvaOS.bin
 }
 ```
 
-Это 3000 контрибъюция!!!
