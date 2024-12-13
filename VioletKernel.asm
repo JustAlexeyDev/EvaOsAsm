@@ -6,19 +6,16 @@ main_loop:
     call print_string
     call print_newline
 
-    mov si, kernelloaded_msg
-    call print_string
-    call print_newline
+    ; mov si, kernelloaded_msg
+    ; call print_string
+    ; call print_newline
 
     call print_newline
 
     mov si, prompt
     call print_string
 
-    ; Считываем ввод пользователя
     call read_input
-
-    ; Анализируем команду
     call parse_command
 
     jmp main_loop
@@ -62,12 +59,10 @@ read_input:
     call print_newline
     ret
 
-; Функция для анализа команды
 parse_command:
     mov si, input_buffer
     mov di, cmd_help
     call compare_strings
-    jc .help
 
     mov di, cmd_ls
     call compare_strings
@@ -125,7 +120,7 @@ compare_strings:
 
 prompt db 'USER INTERPUT >', 0
 header_msg db 'Eva-OS VioletKernel - version 0.002.432', 0
-kernelloaded_msg db "VioletKernel loaded", 0
+kernelloaded_msg db "VioletKernel 16 BITS loaded", 0
 
 unknown_cmd_msg db "Unknown command", 0
 help_msg db "Commands: help, ls, mkdir, rmdir", 0
