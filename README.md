@@ -91,4 +91,3 @@ qemu-system-x86_64 -fda EvaOS.bin
  "Компиляторы": "NASM(ASM ENV)"
 }
 ```
-
