@@ -101,7 +101,7 @@ process_command:
 .clear:
     call clear_screen
     call print_newline
-    call set_cursor_bottom 
+    call set_cursor_top_left 
     ret
 
 .mkdir:
@@ -189,7 +189,7 @@ print_newline:
 
 ; DEBUG MODE
 
-; ; print_registers:
+;  print_registers:
 ;     ; Вывод значения регистра AX
 ;     mov si, ax_msg
 ;     call print_string
@@ -308,7 +308,7 @@ view_msg db 'File viewed', 0
 del_msg db 'File or directory deleted', 0
 ls_msg db 'Listing directory contents', 0
 
-prompt db 'VKernel >', 0
+prompt db 'USER INTERPUT >', 0
 
 header_msg db 'Eva-OS VioletKernel - version 0.000.431', 0
 kernelloaded_msg db "VioletKernel loaded", 0
