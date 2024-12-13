@@ -130,7 +130,7 @@ header_msg db 'Eva-OS VioletKernel - version 0.005.441', 0
 
 unknown_cmd_msg db "Unknown command", 0
 
-help_msg db "Commands: help, ls, mkdir, rmdir, send, clear, regstat", 0
+help_msg db "Commands: help, ls, mkdir, rmdir, send, clear", 0
 ls_msg db "Listing directories...", 0
 mkdir_msg db "Creating directory...", 0
 rmdir_msg db "Removing directory...", 0
