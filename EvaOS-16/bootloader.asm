@@ -33,7 +33,7 @@ success:
     mov si, success_msg
     call print_string
     call print_newline
-    jmp 0x8000  ; Jump to the kernel
+    jmp 0x8000  
 
 success_msg db 'Disk read success', 0
 error_msg db 'Disk read error', 0
