@@ -66,18 +66,19 @@ parse_command:
     mov si, input_buffer
     mov di, cmd_help
     call compare_strings
+    jnc .help  ; Если строки равны, перейти к обработке команды help
 
     mov di, cmd_ls
     call compare_strings
-    jc .ls
+    jnc .ls    ; Если строки равны, перейти к обработке команды ls
 
     mov di, cmd_mkdir
     call compare_strings
-    jc .mkdir
+    jnc .mkdir ; Если строки равны, перейти к обработке команды mkdir
 
     mov di, cmd_rmdir
     call compare_strings
-    jc .rmdir
+    jnc .rmdir ; Если строки равны, перейти к обработке команды rmdir
 
     ; Если команда не найдена
     mov si, unknown_cmd_msg
