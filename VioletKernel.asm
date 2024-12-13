@@ -8,11 +8,6 @@ start:
     jmp main_loop
 
 main_loop:
-
-    ; mov si, kernelloaded_msg
-    ; call print_string
-    ; call print_newline
-
     call print_newline
 
     mov si, prompt
@@ -64,27 +59,10 @@ read_input:
 
 parse_command:
     mov si, input_buffer
+    
     mov di, cmd_help
     call compare_strings
-    jnc .help  ; Если строки равны, перейти к обработке команды help
-
-    mov di, cmd_ls
-    call compare_strings
-    jnc .ls    ; Если строки равны, перейти к обработке команды ls
-
-    mov di, cmd_mkdir
-    call compare_strings
-    jnc .mkdir ; Если строки равны, перейти к обработке команды mkdir
-
-    mov di, cmd_rmdir
-    call compare_strings
-    jnc .rmdir ; Если строки равны, перейти к обработке команды rmdir
-
-    ; Если команда не найдена
-    mov si, unknown_cmd_msg
-    call print_string
-    call print_newline
-    ret
+    jc .check_ls  ; Если строки не равны, продолжить проверку
 
 .help:
     mov si, help_msg
@@ -92,11 +70,21 @@ parse_command:
     call print_newline
     ret
 
+.check_ls:
+    mov di, cmd_ls
+    call compare_strings
+    jc .check_mkdir  ; Если строки не равны, продолжить проверку
+
 .ls:
     mov si, ls_msg
     call print_string
     call print_newline
     ret
+
+.check_mkdir:
+    mov di, cmd_mkdir
+    call compare_strings
+    jc .check_rmdir  ; Если строки не равны, продолжить проверку
 
 .mkdir:
     mov si, mkdir_msg
@@ -104,8 +92,30 @@ parse_command:
     call print_newline
     ret
 
+.check_rmdir:
+    mov di, cmd_rmdir
+    call compare_strings
+    jc .check_send  ; Если строки не равны, продолжить проверку
+
 .rmdir:
     mov si, rmdir_msg
+    call print_string
+    call print_newline
+    ret
+
+.check_send:
+    mov di, cmd_send
+    call compare_strings
+    jc .unknown_cmd  ; Если строки не равны, команда неизвестна
+
+.send:
+    mov si, input_buffer + 5  ; Пропустить "send "
+    call print_string
+    call print_newline
+    ret
+
+.unknown_cmd:
+    mov si, unknown_cmd_msg
     call print_string
     call print_newline
     ret
@@ -122,12 +132,11 @@ compare_strings:
     stc
     ret
 
-prompt db 'USER INTERPUT >', 0
+prompt db 'DISK_A:/>', 0
 header_msg db 'Eva-OS VioletKernel - version 0.003.435', 0
-kernelloaded_msg db "VioletKernel 16 BITS loaded", 0
 
 unknown_cmd_msg db "Unknown command", 0
-help_msg db "Commands: help, ls, mkdir, rmdir", 0
+help_msg db "Commands: help, ls, mkdir, rmdir, send", 0
 ls_msg db "Listing directories...", 0
 mkdir_msg db "Creating directory...", 0
 rmdir_msg db "Removing directory...", 0
@@ -137,6 +146,7 @@ cmd_help db "help", 0
 cmd_ls db "ls", 0
 cmd_mkdir db "mkdir", 0
 cmd_rmdir db "rmdir", 0
+cmd_send db "send", 0
 
 input_buffer times 64 db 0
 
@@ -156,20 +166,5 @@ print_newline:
     mov al, 0x0D
     int 0x10
     mov al, 0x0A
-    int 0x10
-    ret
-
-clear_screen:
-    mov ax, 0x0600
-    xor cx, cx
-    mov dx, 0x184F
-    mov bh, 0x07
-    int 0x10
-    ret
-
-set_cursor_top_left:
-    mov ah, 0x02
-    xor bh, bh
-    xor dx, dx
     int 0x10
     ret
