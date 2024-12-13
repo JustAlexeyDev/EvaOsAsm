@@ -1,7 +1,5 @@
 *.vs
 *.vscode
 *.log
-*.bin
 *./vm
-EvaOS.bin
 *.bin
