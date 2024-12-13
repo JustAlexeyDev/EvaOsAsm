@@ -62,7 +62,7 @@ parse_command:
     
     mov di, cmd_help
     call compare_strings
-    jc .check_ls  ; Если строки не равны, продолжить проверку
+    jc .check_ls  
 
 .help:
     mov si, help_msg
@@ -73,7 +73,7 @@ parse_command:
 .check_ls:
     mov di, cmd_ls
     call compare_strings
-    jc .check_mkdir  ; Если строки не равны, продолжить проверку
+    jc .check_mkdir 
 
 .ls:
     mov si, ls_msg
@@ -84,7 +84,7 @@ parse_command:
 .check_mkdir:
     mov di, cmd_mkdir
     call compare_strings
-    jc .check_rmdir  ; Если строки не равны, продолжить проверку
+    jc .check_rmdir 
 
 .mkdir:
     mov si, mkdir_msg
@@ -95,7 +95,7 @@ parse_command:
 .check_rmdir:
     mov di, cmd_rmdir
     call compare_strings
-    jc .check_send  ; Если строки не равны, продолжить проверку
+    jc .check_send 
 
 .rmdir:
     mov si, rmdir_msg
@@ -106,12 +106,21 @@ parse_command:
 .check_send:
     mov di, cmd_send
     call compare_strings
-    jc .unknown_cmd  ; Если строки не равны, команда неизвестна
+    jc .check_clear 
 
 .send:
-    mov si, input_buffer + 5  ; Пропустить "send "
+    mov si, input_buffer + 5 
     call print_string
     call print_newline
+    ret
+
+.check_clear:
+    mov di, cmd_clear
+    call compare_strings
+    jc .unknown_cmd 
+
+.clear:
+    call clear_screen
     ret
 
 .unknown_cmd:
@@ -121,22 +130,31 @@ parse_command:
     ret
 
 compare_strings:
-    cmpsb
-    jne .not_equal
-    cmp byte [di], 0
-    jne compare_strings
-    clc
+    mov cx, 0xffff 
+
+.compare_loop:
+    lodsb        
+    scasb          
+    jne .not_equal 
+
+    test al, al    
+    jz .equal      
+
+    loop .compare_loop  
+
+.equal:
+    clc            
     ret
 
 .not_equal:
-    stc
+    stc           
     ret
 
 prompt db 'DISK_A:/>', 0
 header_msg db 'Eva-OS VioletKernel - version 0.004.436', 0
 
 unknown_cmd_msg db "Unknown command", 0
-help_msg db "Commands: help, ls, mkdir, rmdir, send", 0
+help_msg db "Commands: help, ls, mkdir, rmdir, send, clear", 0
 ls_msg db "Listing directories...", 0
 mkdir_msg db "Creating directory...", 0
 rmdir_msg db "Removing directory...", 0
@@ -147,6 +165,7 @@ cmd_ls db "ls", 0
 cmd_mkdir db "mkdir", 0
 cmd_rmdir db "rmdir", 0
 cmd_send db "send", 0
+cmd_clear db "clear", 0 
 
 input_buffer times 64 db 0
 
@@ -167,4 +186,16 @@ print_newline:
     int 0x10
     mov al, 0x0A
     int 0x10
+    ret
+
+clear_screen:
+    mov ax, 0x0600 
+    mov bh, 0x07    
+    mov cx, 0x0000 
+    mov dx, 0x184F 
+    int 0x10       
+    mov ah, 0x02   
+    mov bh, 0x00   
+    mov dx, 0x0000 
+    int 0x10        
     ret
