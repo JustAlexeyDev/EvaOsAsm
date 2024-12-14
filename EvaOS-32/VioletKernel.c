@@ -1,34 +1,33 @@
-#include <iostream>
-#include <string>
-#include <cstring>
+#include <stdio.h>
+#include <string.h>
 
-const int BUFFER_SIZE = 64;
+#define BUFFER_SIZE 64
 
 void print_string(const char* str) {
-    std::cout << str;
+    printf("%s", str);
 }
 
 void print_char(char c) {
-    std::cout << c;
+    putchar(c);
 }
 
 void print_newline() {
-    std::cout << '\r' << '\n';
+    printf("\r\n");
 }
 
 void clear_screen() {
-    std::cout << "\033[H\033[2J"; // Escape sequence to clear the screen
+    printf("\033[H\033[2J"); // Escape sequence to clear the screen
 }
 
-bool compare_strings(const char* str1, const char* str2) {
-    return std::strcmp(str1, str2) == 0;
+int compare_strings(const char* str1, const char* str2) {
+    return strcmp(str1, str2) == 0;
 }
 
 void read_input(char* input_buffer) {
     int index = 0;
     char c;
     while (index < BUFFER_SIZE - 1) {
-        std::cin.get(c);
+        c = getchar();
         if (c == '\r') {
             break;
         } else if (c == '\b') {
@@ -76,7 +75,7 @@ int main() {
     print_newline();
 
     char input_buffer[BUFFER_SIZE];
-    while (true) {
+    while (1) {
         print_newline();
         print_string("DISK_A:/>");
         read_input(input_buffer);
