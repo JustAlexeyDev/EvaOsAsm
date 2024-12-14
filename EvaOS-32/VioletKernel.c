@@ -16,7 +16,7 @@ void print_newline() {
 }
 
 void clear_screen() {
-    printf("\033[H\033[2J"); // Escape sequence to clear the screen
+    printf("\033[H\033[2J"); 
 }
 
 int compare_strings(const char* str1, const char* str2) {
@@ -42,7 +42,7 @@ void read_input(char* input_buffer) {
             print_char(c);
         }
     }
-    input_buffer[index] = '\0'; // Null-terminate the string
+    input_buffer[index] = '\0';
     print_newline();
 }
 
