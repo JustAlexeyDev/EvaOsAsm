@@ -15,7 +15,7 @@ start:
     mov es, ax
     mov bx, 0x8000
     mov ah, 0x02
-    mov al, 1 
+    mov al, 8
     mov ch, 0  
     mov cl, 2 
     mov dh, 0 
@@ -23,7 +23,7 @@ start:
     int 0x13
 
     jnc success
-    ; Disk read failed
+    
     mov si, error_msg
     call print_string
     call print_newline
