@@ -178,7 +178,7 @@ compare_strings:
     ret
 
 prompt db 'DISK_A:/>', 0
-header_msg db 'Eva-OS VioletKernel - version 0.004.440. RUNNING IN 16-BITS MODE!', 0
+header_msg db 'Eva-OS VioletKernel - version 0.006.443. RUNNING IN 16-BITS MODE!', 0
 
 unknown_cmd_msg db "Unknown command", 0
 help_msg db "Commands: help, ls, mkdir, rmdir, send, clear, restart, regstat", 0
