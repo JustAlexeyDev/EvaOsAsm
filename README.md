@@ -86,7 +86,7 @@ qemu-system-x86_64 -fda EvaOS.bin
 ```json
 {
  "Эмуляторы": "QEMU",
- "Языки": "C++ GCC (Violet-Kernel), Python (runner)",
+ "Языки": "C++ GCC (EvaOS), Python (runner), Assembler (VioletKernel)",
  "Программы": "GIT",
  "Компиляторы": "NASM(ASM ENV)"
 }
