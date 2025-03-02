@@ -9,8 +9,8 @@ init(autoreset=True)
 
 
 LOGS_DIR = "../Logs"
-OUT_DIR = "../Out"
-CORE_DIR = "../Core"
+OUT_DIR = "../../Out"
+CORE_DIR = "../../Core"
 
 if not os.path.exists(LOGS_DIR):
     os.makedirs(LOGS_DIR)
