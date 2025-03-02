@@ -5,7 +5,7 @@ start:
     mov si, header_msg
     call print_string
     call print_newline
-    call start_gui
+    ; call start_gui
     jmp main_loop
 
 main_loop:
@@ -293,7 +293,7 @@ draw_text:
     ret
 
 prompt db 'DISK_MAIN:/>', 0
-header_msg db 'Eva-OS VioletKernel - version 0.006.443. RUNNING IN 16-BITS MODE! Привет!', 0
+header_msg db 'Eva-OS VioletKernel - version 0.006.443. RUNNING IN 16-BITS MODE!', 0
 
 unknown_cmd_msg db "Your command is not recognized as an internal or external command or operable program.", 0
 help_msg db "Commands: help, ls, mkdir, rmdir, send, clear, restart, regstat, gui", 0
