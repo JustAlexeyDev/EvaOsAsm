@@ -2,9 +2,26 @@ org 0x8000
 bits 16
 
 start:
+    ; Логирование начала выполнения ядра
+    mov si, kernel_start_msg
+    call print_string
+    call print_newline
+
+    ; Логирование инициализации ядра
+    mov si, kernel_init_msg
+    call print_string
+    call print_newline
+
+    ; Логирование отображения заголовка
     mov si, header_msg
     call print_string
     call print_newline
+
+    ; Логирование перехода в главный цикл
+    mov si, main_loop_start_msg
+    call print_string
+    call print_newline
+
     ; call start_gui
     jmp main_loop
 
@@ -16,7 +33,6 @@ main_loop:
 
     call read_input
     call parse_command
-    
 
     jmp main_loop
 
@@ -190,6 +206,11 @@ compare_strings:
 
 ; Графическая оболочка
 start_gui:
+    ; Логирование запуска графической оболочки
+    mov si, gui_start_msg
+    call print_string
+    call print_newline
+
     ; Переключение в графический режим 320x200x256
     mov ax, 0x13
     int 0x10
@@ -293,7 +314,7 @@ draw_text:
     ret
 
 prompt db 'DISK_MAIN:/>', 0
-header_msg db 'Eva-OS VioletKernel - version 0.006.443. RUNNING IN 16-BITS MODE!', 0
+header_msg db 'Eva-OS VioletKernel - version 0.008.573. Running in 16-bits mode!', 0
 
 unknown_cmd_msg db "Your command is not recognized as an internal or external command or operable program.", 0
 help_msg db "Commands: help, ls, mkdir, rmdir, send, clear, restart, regstat, gui", 0
@@ -420,3 +441,9 @@ reg_si_msg db " SI: ", 0
 reg_di_msg db " DI: ", 0
 reg_bp_msg db " BP: ", 0
 reg_sp_msg db " SP: ", 0
+
+; Новые сообщения для логирования
+kernel_start_msg db '[ OK ] [ KERNEL ] - Kernel started successfully', 0
+kernel_init_msg db '[ OK ] [ KERNEL ] - Initializing kernel...', 0
+main_loop_start_msg db '[ OK ] [ KERNEL ] - Entering main loop...', 0
+gui_start_msg db '[ OK ] [ KERNEL ] - Starting GUI...', 0
