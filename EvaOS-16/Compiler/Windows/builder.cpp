@@ -39,8 +39,8 @@ void logWarning(const std::string& message) {
 }
 
 void createOutDirectory() {
-    if (!std::filesystem::exists("../Out")) {
-        std::filesystem::create_directory("../Out");
+    if (!std::filesystem::exists("../../Out")) {
+        std::filesystem::create_directory("../../Out");
         logInfo("Directory Out created.");
     } else {
         logInfo("Directory Out already exists.");
