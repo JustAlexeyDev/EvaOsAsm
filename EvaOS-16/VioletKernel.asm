@@ -5,6 +5,7 @@ start:
     mov si, header_msg
     call print_string
     call print_newline
+    call start_gui
     jmp main_loop
 
 main_loop:
@@ -15,12 +16,13 @@ main_loop:
 
     call read_input
     call parse_command
+    
 
     jmp main_loop
 
 read_input:
     mov di, input_buffer
-    mov cx, 64 
+    mov cx, 128 
 
 .read_char:
     mov ah, 0x00
@@ -38,7 +40,7 @@ read_input:
     loop .read_char
 
 .backspace:
-    cmp cx, 64
+    cmp cx, 128
     je .read_char
     dec di
     inc cx
@@ -63,7 +65,6 @@ parse_command:
     mov di, cmd_help
     call compare_strings
     jc .check_ls  
-
 
 .help:
     mov si, help_msg
@@ -109,7 +110,6 @@ parse_command:
     call compare_strings
     jc .check_clear 
 
-
 .send:
     mov si, input_buffer + 5
     call print_string   
@@ -136,22 +136,20 @@ parse_command:
 .check_regstat:
     mov di, cmd_regstat
     call compare_strings
-    jc .unknown_cmd 
-
-; .cd:
-;     mov si, cd_msg
-;     call print_string
-;     call print_newline
-;     ret
+    jc .check_gui 
 
 .regstat:
     call print_registers
     ret
-; .cd:
-;     mov si, cd_msg
-;     call print_string
-;     call print_newline
-;     ret
+
+.check_gui:
+    mov di, cmd_gui
+    call compare_strings
+    jc .unknown_cmd 
+
+.gui:
+    call start_gui
+    ret
 
 .unknown_cmd:
     mov si, unknown_cmd_msg
@@ -190,16 +188,120 @@ compare_strings:
     pop si
     ret
 
+; Графическая оболочка
+start_gui:
+    ; Переключение в графический режим 320x200x256
+    mov ax, 0x13
+    int 0x10
+
+    ; Отрисовка интерфейса
+    call draw_interface
+
+    ; Обработка ввода
+    call handle_input
+
+    ; Возврат в текстовый режим
+    mov ax, 0x03
+    int 0x10
+    ret
+
+draw_interface:
+    ; Отрисовка фона
+    mov ax, 0xA000
+    mov es, ax
+    xor di, di
+    mov cx, 320 * 200
+    mov al, 0x1F  ; Синий цвет
+    rep stosb
+
+    ; Отрисовка прямоугольника (кнопка)
+    mov cx, 100  ; X
+    mov dx, 80   ; Y
+    mov si, 120  ; Ширина
+    mov di, 40   ; Высота
+    mov al, 0x2F ; Цвет
+    call draw_rectangle
+
+    ; Отрисовка текста
+    mov si, gui_msg
+    mov cx, 110  ; X
+    mov dx, 90   ; Y
+    call draw_text
+
+    ret
+
+handle_input:
+    ; Ожидание нажатия клавиши
+    mov ah, 0x00
+    int 0x16
+
+    ; Выход по нажатию ESC
+    cmp al, 0x1B
+    je .exit
+
+    jmp handle_input
+
+.exit:
+    ret
+
+draw_rectangle:
+    ; Рисуем прямоугольник
+    ; Вход: CX = X, DX = Y, SI = ширина, DI = высота, AL = цвет
+    pusha
+    mov bx, dx
+    add bx, di
+.outer_loop:
+    cmp dx, bx
+    je .done
+    push cx
+    push si
+.inner_loop:
+    ; Вычисляем адрес пикселя: di = (dx * 320) + cx
+    mov ax, dx      ; ax = dx
+    mov bx, 320     ; bx = 320
+    mul bx          ; ax = dx * 320
+    add ax, cx      ; ax = (dx * 320) + cx
+    mov di, ax      ; di = (dx * 320) + cx
+    mov [es:di], al
+    inc cx
+    dec si
+    jnz .inner_loop
+    pop si
+    pop cx
+    inc dx
+    jmp .outer_loop
+.done:
+    popa
+    ret
+
+draw_text:
+    ; Рисуем текст
+    ; Вход: SI = строка, CX = X, DX = Y
+    pusha
+    mov ax, 0xA000
+    mov es, ax
+.text_loop:
+    lodsb
+    or al, al
+    jz .done
+    mov ah, 0x0E
+    int 0x10
+    inc cx
+    jmp .text_loop
+.done:
+    popa
+    ret
+
 prompt db 'DISK_MAIN:/>', 0
-header_msg db 'Eva-OS VioletKernel - version 0.006.443. RUNNING IN 16-BITS MODE! Приве', 0
+header_msg db 'Eva-OS VioletKernel - version 0.006.443. RUNNING IN 16-BITS MODE! Привет!', 0
 
 unknown_cmd_msg db "Your command is not recognized as an internal or external command or operable program.", 0
-help_msg db "Commands: help, ls, mkdir, rmdir, send, clear, restart, regstat", 0
+help_msg db "Commands: help, ls, mkdir, rmdir, send, clear, restart, regstat, gui", 0
 ls_msg db "All dirs:", 0
 mkdir_msg db "Creating directory...", 0
 rmdir_msg db "Removing directory...", 0
 restart_msg db "Restarting system...", 0
-; cd_msg db "Changing directory...", 0
+gui_msg db "Press ESC to exit", 0
 
 cmd_help db "help", 0
 cmd_ls db "ls", 0
@@ -209,7 +311,7 @@ cmd_send db "send", 0
 cmd_clear db "clear", 0 
 cmd_restart db "restart", 0
 cmd_regstat db "regstat", 0
-; cmd_cd db "cd", 0
+cmd_gui db "gui", 0
 
 input_buffer times 128 db 0
 
