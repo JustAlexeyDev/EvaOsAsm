@@ -64,6 +64,7 @@ parse_command:
     call compare_strings
     jc .check_ls  
 
+
 .help:
     mov si, help_msg
     call print_string
@@ -108,11 +109,12 @@ parse_command:
     call compare_strings
     jc .check_clear 
 
+
 .send:
-    mov si, input_buffer + 5  
+    mov si, input_buffer + 5
     call print_string   
     call print_newline
-    jmp main_loop           
+    jmp main_loop      
 
 .check_clear:
     mov di, cmd_clear
@@ -136,9 +138,20 @@ parse_command:
     call compare_strings
     jc .unknown_cmd 
 
+; .cd:
+;     mov si, cd_msg
+;     call print_string
+;     call print_newline
+;     ret
+
 .regstat:
     call print_registers
     ret
+; .cd:
+;     mov si, cd_msg
+;     call print_string
+;     call print_newline
+;     ret
 
 .unknown_cmd:
     mov si, unknown_cmd_msg
@@ -158,7 +171,7 @@ compare_strings:
     
     test al, al  
     jz .equal   
-    
+
     cmp al, ' '    
     je .equal   
     
@@ -177,15 +190,16 @@ compare_strings:
     pop si
     ret
 
-prompt db 'DISK_A:/>', 0
-header_msg db 'Eva-OS VioletKernel - version 0.006.443. RUNNING IN 16-BITS MODE!', 0
+prompt db 'DISK_MAIN:/>', 0
+header_msg db 'Eva-OS VioletKernel - version 0.006.443. RUNNING IN 16-BITS MODE! Приве', 0
 
-unknown_cmd_msg db "Unknown command", 0
+unknown_cmd_msg db "Your command is not recognized as an internal or external command or operable program.", 0
 help_msg db "Commands: help, ls, mkdir, rmdir, send, clear, restart, regstat", 0
 ls_msg db "All dirs:", 0
 mkdir_msg db "Creating directory...", 0
 rmdir_msg db "Removing directory...", 0
 restart_msg db "Restarting system...", 0
+; cd_msg db "Changing directory...", 0
 
 cmd_help db "help", 0
 cmd_ls db "ls", 0
@@ -195,8 +209,9 @@ cmd_send db "send", 0
 cmd_clear db "clear", 0 
 cmd_restart db "restart", 0
 cmd_regstat db "regstat", 0
+; cmd_cd db "cd", 0
 
-input_buffer times 64 db 0
+input_buffer times 128 db 0
 
 print_string:
     lodsb

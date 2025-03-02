@@ -33,10 +33,14 @@ success:
     mov si, success_msg
     call print_string
     call print_newline
+    mov di, kernelLoaded_msg
+    call print_string
+    call print_newline
     jmp 0x8000  
 
-success_msg db 'Disk read success', 0
-error_msg db 'Disk read error', 0
+success_msg db '[ OK ] (loader) - Disk read success', 0
+kernelLoaded_msg db '[ OK ] (loader) - Violet-Kernel loaded success', 0
+error_msg db '[ FALL ] Disk read error', 0
 
 clear_screen:
     mov ax, 0x0600
