@@ -3,7 +3,7 @@
 #include <vector>
 #include <cstdlib>
 #include <filesystem>
-#include <fstream> // Добавлено для работы с файловыми потоками
+#include <fstream> 
 
 #define RESET   "\033[0m"
 #define RED     "\033[31m"
@@ -16,7 +16,7 @@
 void compileAsmFile(const std::string& sourceFile, const std::string& outputFile) {
     std::string command = "nasm -f bin " + sourceFile + " -o " + outputFile;
     std::cout << BLUE << "[COMPILER] " << RESET << "Compiling " << sourceFile << " to " << outputFile << std::endl;
-    std::cout << "Executing: " << command << std::endl; // Debugging output
+    std::cout << "Executing: " << command << std::endl; 
     int result = std::system(command.c_str());
     if (result != 0) {
         std::cerr << RED << "[ERROR] " << RESET << "Compilation of " << sourceFile << " failed!" << std::endl;
@@ -57,22 +57,18 @@ int main() {
     std::vector<std::string> binaryFiles;
     std::string outputFile = "EvaOS.bin";
 
-    // Компиляция ASM файлов
     for (const auto& source : sourceFiles) {
         std::string binaryFile = std::filesystem::path(source).stem().string() + ".bin";
         compileAsmFile(source, binaryFile);
         binaryFiles.push_back(binaryFile);
     }
-
-    // Объединение бинарных файлов
     combineFiles(binaryFiles, outputFile);
 
     std::cout << GREEN << "[BUILD SUCCESS] " << RESET << "Build process completed successfully!" << std::endl;
 
-    // Запуск QEMU
     std::cout << YELLOW << "[QEMU] " << RESET << "Starting QEMU with logging..." << std::endl;
     std::string qemuCommand = "qemu-system-x86_64 -fda " + outputFile + " -d cpu_reset,int,guest_errors -D qemu.log";
-    std::cout << "Executing: " << qemuCommand << std::endl; // Debugging output
+    std::cout << "Executing: " << qemuCommand << std::endl; 
     int result = std::system(qemuCommand.c_str());
     if (result != 0) {
         std::cerr << RED << "[ERROR] " << RESET << "QEMU failed to start!" << std::endl;
