@@ -8,8 +8,27 @@ start:
     mov ss, ax
     mov sp, 0x7C00     
 
+    ; Логирование начала загрузки
     call clear_screen
     call set_cursor_top_left
+    mov si, start_msg
+    call print_string
+    call print_newline
+
+    ; Логирование инициализации памяти
+    mov si, init_memory_msg
+    call print_string
+    call print_newline
+
+    ; Логирование настройки стека
+    mov si, setup_stack_msg
+    call print_string
+    call print_newline
+
+    ; Логирование начала чтения диска
+    mov si, disk_read_start_msg
+    call print_string
+    call print_newline
 
     mov ax, 0x0000
     mov es, ax
@@ -22,25 +41,41 @@ start:
     mov dl, 0x00 
     int 0x13
 
-    jnc success
+    jnc disk_read_success
     
-    mov si, error_msg
+    ; Логирование ошибки чтения диска
+    mov si, disk_read_error_msg
     call print_string
     call print_newline
     jmp $
 
-success:
-    mov si, success_msg
+disk_read_success:
+    ; Логирование успешного чтения диска
+    mov si, disk_read_success_msg
     call print_string
     call print_newline
-    mov di, kernelLoaded_msg
+
+    ; Логирование загрузки ядра
+    mov si, kernel_loaded_msg
     call print_string
     call print_newline
+
+    ; Логирование перехода к ядру
+    mov si, jump_to_kernel_msg
+    call print_string
+    call print_newline
+
+    ; Переход к загруженному ядру
     jmp 0x8000  
 
-success_msg db '[ OK ] (loader) - Disk read success', 0
-kernelLoaded_msg db '[ OK ] (loader) - Violet-Kernel loaded success', 0
-error_msg db '[ FALL ] Disk read error', 0
+start_msg db '[ OK ] [ LOADER ] - Starting boot process...', 0
+init_memory_msg db '[ OK ] [ LOADER ] - Initializing memory...', 0
+setup_stack_msg db '[ OK ] [ LOADER ] - Setting up stack...', 0
+disk_read_start_msg db '[ OK ] [ LOADER ] - Starting disk read...', 0
+disk_read_success_msg db '[ OK ] [ LOADER ] - Disk read successful', 0
+disk_read_error_msg db '[ FAIL ] [ LOADER ] - Disk read error', 0
+kernel_loaded_msg db '[ OK ] [ LOADER ] - Kernel loaded successfully', 0
+jump_to_kernel_msg db '[ OK ] [ LOADER ] - Jumping to kernel...', 0
 
 clear_screen:
     mov ax, 0x0600
