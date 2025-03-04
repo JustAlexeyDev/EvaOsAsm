@@ -91,3 +91,8 @@ qemu-system-x86_64 -fda EvaOS.bin
  "Компиляторы": "NASM(ASM ENV)"
 }
 ```
+
+Ссылки
+Эмулятор https://www.qemu.org/
+Assembler https://www.nasm.us/
+Python https://www.python.org/
