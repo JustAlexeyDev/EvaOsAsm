@@ -9,33 +9,32 @@ bits 16
 start:
     ; --------------------- ЛОГИРОВАНИЕ  ---------------------
     mov si, kernel_start_msg  ; Пишем в консоль
-    call print_string         
-    call print_newline        
+    call print_string
+    call print_newline
 
-    mov si, kernel_init_msg   
+    mov si, kernel_init_msg
     call print_string         ; На самом деле мы нихуя не инициализируем
     call print_newline        ; Но пусть пользователи думают, что мы заняты
 
     mov si, header_msg        ; Выводим заголовок, чтобы скрыть, что система - говно
     call print_string         ; "Running in 16-bits mode!" - потому что на 32-бита меня не хватило
-    call print_newline        ; 
+    call print_newline
 
     mov si, main_loop_start_msg  ; "Entering main loop" - а куда деваться-то?
-    call print_string            ; 
-    call print_newline           ; 
+    call print_string
+    call print_newline
 
     jmp main_loop  ; Прыгаем в вечный цикл
 
 
-    
 ; ############################ ГЛАВНЫЙ ЦИКЛ ############################
 main_loop:
     call print_newline  ; Новая строка - новый пиздец
 
     mov si, prompt      ; Выводим приглашение, типа "V:/>"
-    call print_string   ; 
+    call print_string   ;
 
-    call read_input     ; Читаем ввод пользователя 
+    call read_input     ; Читаем ввод пользователя
     call parse_command  ; Пытаемся разобрать
 
     jmp main_loop      ; И так до бесконечности
@@ -67,7 +66,7 @@ read_input:
     inc cx
     mov ah, 0x0E
     mov al, 0x08
-    int 0x10   
+    int 0x10
     mov al, ' '
     int 0x10
     mov al, 0x08
@@ -76,16 +75,15 @@ read_input:
 
 .done:
     mov al, 0x00
-    stosb        
+    stosb
     call print_newline
     ret
 
 parse_command:
     mov si, input_buffer
-    
     mov di, cmd_help
     call compare_strings
-    jc .check_ls  
+    jc .check_ls
 
 ; --------------------- Команды  ---------------------
 
@@ -98,7 +96,7 @@ parse_command:
 .check_ls:
     mov di, cmd_ls
     call compare_strings
-    jc .check_mkdir 
+    jc .check_mkdir
 
 .ls:
     mov si, ls_msg
@@ -109,7 +107,7 @@ parse_command:
 .check_mkdir:
     mov di, cmd_mkdir
     call compare_strings
-    jc .check_rmdir 
+    jc .check_rmdir
 
 .mkdir:
     mov si, mkdir_msg
@@ -120,7 +118,7 @@ parse_command:
 .check_rmdir:
     mov di, cmd_rmdir
     call compare_strings
-    jc .check_send 
+    jc .check_send
 
 .rmdir:
     mov si, rmdir_msg
@@ -131,18 +129,18 @@ parse_command:
 .check_send:
     mov di, cmd_send
     call compare_strings
-    jc .check_clear 
+    jc .check_clear
 
 .send:
     mov si, input_buffer + 5
-    call print_string   
+    call print_string
     call print_newline
-    jmp main_loop      
+    jmp main_loop
 
 .check_clear:
     mov di, cmd_clear
     call compare_strings
-    jc .check_restart 
+    jc .check_restart
 
 .clear:
     call clear_screen
@@ -151,15 +149,15 @@ parse_command:
 .check_restart:
     mov di, cmd_restart
     call compare_strings
-    jc .check_regstat 
+    jc .check_regstat
 
 .restart:
-    jmp 0xFFFF:0x0000 
+    jmp 0xFFFF:0x0000
 
 .check_regstat:
     mov di, cmd_regstat
     call compare_strings
-    jc .check_gui 
+    jc .check_gui
 
 .regstat:
     call print_registers
@@ -168,7 +166,7 @@ parse_command:
 .check_gui:
     mov di, cmd_gui
     call compare_strings
-    jc .unknown_cmd 
+    jc .unknown_cmd
 
 .gui:
     call start_gui
@@ -184,27 +182,27 @@ compare_strings:
     push si
     push di
     push cx
-    
-.compare_loop:
-    lodsb         
-    scasb      
-    jne .not_equal 
-    
-    test al, al  
-    jz .equal   
 
-    cmp al, ' '    
-    je .equal   
-    
-    jmp .compare_loop 
-    
+.compare_loop:
+    lodsb
+    scasb
+    jne .not_equal
+
+    test al, al
+    jz .equal
+
+    cmp al, ' '
+    je .equal
+
+    jmp .compare_loop
+
 .equal:
-    clc          
+    clc
     jmp .done
-    
+
 .not_equal:
-    stc          
-    
+    stc
+
 .done:
     pop cx
     pop di
@@ -366,15 +364,15 @@ print_newline:
     ret
 
 clear_screen:
-    mov ax, 0x0600 
-    mov bh, 0x07    
-    mov cx, 0x0000 
-    mov dx, 0x184F 
-    int 0x10       
-    mov ah, 0x02   
-    mov bh, 0x00   
-    mov dx, 0x0000 
-    int 0x10        
+    mov ax, 0x0600
+    mov bh, 0x07
+    mov cx, 0x0000
+    mov dx, 0x184F
+    int 0x10
+    mov ah, 0x02
+    mov bh, 0x00
+    mov dx, 0x0000
+    int 0x10
     jmp start
     ret
 
@@ -383,42 +381,42 @@ print_registers:
 
     mov si, reg_ax_msg
     call print_string
-    mov ax, [esp + 14]  
+    mov ax, [esp + 14]
     call print_hex
 
     mov si, reg_bx_msg
     call print_string
-    mov ax, [esp + 12]  
+    mov ax, [esp + 12]
     call print_hex
 
     mov si, reg_cx_msg
     call print_string
-    mov ax, [esp + 10]  
+    mov ax, [esp + 10]
     call print_hex
 
     mov si, reg_dx_msg
     call print_string
-    mov ax, [esp + 8]   
+    mov ax, [esp + 8]
     call print_hex
 
     mov si, reg_si_msg
     call print_string
-    mov ax, [esp + 6]   
+    mov ax, [esp + 6]
     call print_hex
 
     mov si, reg_di_msg
     call print_string
-    mov ax, [esp + 4]  
+    mov ax, [esp + 4]
     call print_hex
 
     mov si, reg_bp_msg
     call print_string
-    mov ax, [esp + 2] 
+    mov ax, [esp + 2]
     call print_hex
 
     mov si, reg_sp_msg
     call print_string
-    mov ax, [esp]      
+    mov ax, [esp]
     call print_hex
 
     popa
@@ -453,6 +451,7 @@ reg_si_msg db " SI: ", 0
 reg_di_msg db " DI: ", 0
 reg_bp_msg db " BP: ", 0
 reg_sp_msg db " SP: ", 0
+
 kernel_start_msg db '[ OK ] [ KERNEL ] - Kernel started successfully', 0
 kernel_init_msg db '[ OK ] [ KERNEL ] - Initializing kernel...', 0
 main_loop_start_msg db '[ OK ] [ KERNEL ] - Entering main loop...', 0
