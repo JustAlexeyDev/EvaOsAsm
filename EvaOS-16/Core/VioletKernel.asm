@@ -1,59 +1,64 @@
 org 0x8000
 bits 16
 
+; #############################################################
+; #  ЯДРО ОПЕРАЦИОННОЙ СИСТЕМЫ                                #
+; #  Если вы читаете этот код.. пожалуйста не надо            #
+; #############################################################
+
 start:
-    ; Логирование начала выполнения ядра
-    mov si, kernel_start_msg
-    call print_string
-    call print_newline
+    ; --------------------- ЛОГИРОВАНИЕ  ---------------------
+    mov si, kernel_start_msg  ; Пишем в консоль
+    call print_string         
+    call print_newline        
 
-    ; Логирование инициализации ядра
-    mov si, kernel_init_msg
-    call print_string
-    call print_newline
+    mov si, kernel_init_msg   
+    call print_string         ; На самом деле мы нихуя не инициализируем
+    call print_newline        ; Но пусть пользователи думают, что мы заняты
 
-    ; Логирование отображения заголовка
-    mov si, header_msg
-    call print_string
-    call print_newline
+    mov si, header_msg        ; Выводим заголовок, чтобы скрыть, что система - говно
+    call print_string         ; "Running in 16-bits mode!" - потому что на 32-бита меня не хватило
+    call print_newline        ; 
 
-    ; Логирование перехода в главный цикл
-    mov si, main_loop_start_msg
-    call print_string
-    call print_newline
+    mov si, main_loop_start_msg  ; "Entering main loop" - а куда деваться-то?
+    call print_string            ; 
+    call print_newline           ; 
 
-    ; call start_gui
-    jmp main_loop
+    jmp main_loop  ; Прыгаем в вечный цикл
 
+
+    
+; ############################ ГЛАВНЫЙ ЦИКЛ ############################
 main_loop:
-    call print_newline
+    call print_newline  ; Новая строка - новый пиздец
 
-    mov si, prompt
-    call print_string
+    mov si, prompt      ; Выводим приглашение, типа "V:/>"
+    call print_string   ; 
 
-    call read_input
-    call parse_command
+    call read_input     ; Читаем ввод пользователя 
+    call parse_command  ; Пытаемся разобрать
 
-    jmp main_loop
+    jmp main_loop      ; И так до бесконечности
 
 read_input:
-    mov di, input_buffer
-    mov cx, 128 
+    mov di, input_buffer  ; Буфер для ввода 128 байт, больше не влезет, идите нахуй :)
+    mov cx, 128           ; Счетчик, чтобы не выйти за пределы (а кто проверяет? нихуя)
 
 .read_char:
-    mov ah, 0x00
-    int 0x16  
+    mov ah, 0x00       ; Читаем символ с клавы (если, конечно, клава есть)
+    int 0x16           ; 
 
-    cmp al, 0x0D
-    je .done
+    cmp al, 0x0D       ; Enter - конец ввода
+    je .done           ; 
 
-    cmp al, 0x08 
-    je .backspace
+    cmp al, 0x08       ; Backspace
+    je .backspace      ; 
 
-    stosb      
-    mov ah, 0x0E
-    int 0x10   
-    loop .read_char
+    stosb              ; Пишем символ в буфер (а если буфер переполнится? да похуй)
+    mov ah, 0x0E       ; Выводим символ (чтобы пользователь видел, как он хуйню пишет)
+    int 0x10           ; 
+    loop .read_char    ; 
+
 
 .backspace:
     cmp cx, 128
@@ -81,6 +86,8 @@ parse_command:
     mov di, cmd_help
     call compare_strings
     jc .check_ls  
+
+; --------------------- Команды  ---------------------
 
 .help:
     mov si, help_msg
@@ -205,26 +212,23 @@ compare_strings:
     ret
 
 ; Графическая оболочка
+; ########################## ГУИ (ГОВНО-ИНТЕРФЕЙС) ##########################
 start_gui:
-    ; Логирование запуска графической оболочки
-    mov si, gui_start_msg
-    call print_string
-    call print_newline
+    mov si, gui_start_msg  ; "Starting GUI" - звучит гордо, но это пиздеж
+    call print_string      ; 
+    call print_newline     ; 
 
-    ; Переключение в графический режим 320x200x256
-    mov ax, 0x13
-    int 0x10
+    mov ax, 0x13          ; Переключаемся в режим 320x200 (как в 90-е, блядь)
+    int 0x10              ; 
 
-    ; Отрисовка интерфейса
-    call draw_interface
+    call draw_interface   ; Рисуем интерфейс (криво, но бесплатно)
 
-    ; Обработка ввода
-    call handle_input
+    call handle_input     ; Обрабатываем ввод (никак, на самом деле)
 
-    ; Возврат в текстовый режим
-    mov ax, 0x03
-    int 0x10
-    ret
+    mov ax, 0x03          ; Возвращаемся в текстовый режим (спасибо, что не сломалось)
+    int 0x10              ; 
+    ret                   ; 
+
 
 draw_interface:
     ; Отрисовка фона
@@ -313,7 +317,11 @@ draw_text:
     popa
     ret
 
-prompt db 'DISK_MAIN:/>', 0
+; #############################################################
+; #                        Логирование                        #
+; #                                                           #
+; #############################################################
+prompt db 'V:/> ', 0
 header_msg db 'Eva-OS VioletKernel - version 0.008.573. Running in 16-bits mode!', 0
 
 unknown_cmd_msg db "Your command is not recognized as an internal or external command or operable program.", 0
@@ -323,6 +331,8 @@ mkdir_msg db "Creating directory...", 0
 rmdir_msg db "Removing directory...", 0
 restart_msg db "Restarting system...", 0
 gui_msg db "Press ESC to exit", 0
+
+; --------------------- Команды ввода  ---------------------
 
 cmd_help db "help", 0
 cmd_ls db "ls", 0
@@ -433,6 +443,8 @@ print_hex:
     pop cx
     ret
 
+; --------------------- Регистры  ---------------------
+
 reg_ax_msg db "AX: ", 0
 reg_bx_msg db " BX: ", 0
 reg_cx_msg db " CX: ", 0
@@ -441,8 +453,6 @@ reg_si_msg db " SI: ", 0
 reg_di_msg db " DI: ", 0
 reg_bp_msg db " BP: ", 0
 reg_sp_msg db " SP: ", 0
-
-; Новые сообщения для логирования
 kernel_start_msg db '[ OK ] [ KERNEL ] - Kernel started successfully', 0
 kernel_init_msg db '[ OK ] [ KERNEL ] - Initializing kernel...', 0
 main_loop_start_msg db '[ OK ] [ KERNEL ] - Entering main loop...', 0
