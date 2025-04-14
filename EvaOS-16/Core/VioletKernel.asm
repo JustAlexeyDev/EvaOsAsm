@@ -1,291 +1,156 @@
 org 0x8000
 bits 16
 
-; #############################################################
-; #  ЯДРО ОПЕРАЦИОННОЙ СИСТЕМЫ                                #
-; #  Если вы читаете этот код.. пожалуйста не надо            #
-; #############################################################
-
 start:
-    ; --------------------- ЛОГИРОВАНИЕ  ---------------------
-    mov si, kernel_start_msg  ; Пишем в консоль
+    ; Инициализация сегментов
+    mov ax, cs
+    mov ds, ax
+    mov es, ax
+    
+    ; Инициализация стека
+    mov ss, ax
+    mov sp, 0xFFFE
+    
+    ; Очистка экрана
+    call clear_screen
+    
+    ; Приветственное сообщение
+    mov si, welcome_msg
     call print_string
     call print_newline
-
-    mov si, kernel_init_msg
-    call print_string         ; На самом деле мы нихуя не инициализируем
-    call print_newline        ; Но пусть пользователи думают, что мы заняты
-
-    mov si, header_msg        ; Выводим заголовок, чтобы скрыть, что система - говно
-    call print_string         ; "Running in 16-bits mode!" - потому что на 32-бита меня не хватило
-    call print_newline
-
-    mov si, main_loop_start_msg  ; "Entering main loop" - а куда деваться-то?
-    call print_string
-    call print_newline
-
-    jmp main_loop  ; Прыгаем в вечный цикл
-
-
-; ############################ ГЛАВНЫЙ ЦИКЛ ############################
-main_loop:
-    call print_newline  ; Новая строка - новый пиздец
-
-    mov si, prompt      ; Выводим приглашение, типа "V:/>"
-    call print_string   ;
-
-    call read_input     ; Читаем ввод пользователя
-    call parse_command  ; Пытаемся разобрать
-
-    jmp main_loop      ; И так до бесконечности
-
-read_input:
-    mov di, input_buffer  ; Буфер для ввода 128 байт, больше не влезет, идите нахуй :)
-    mov cx, 128           ; Счетчик, чтобы не выйти за пределы (а кто проверяет? нихуя)
-
-.read_char:
-    mov ah, 0x00       ; Читаем символ с клавы (если, конечно, клава есть)
-    int 0x16           ; 
-
-    cmp al, 0x0D       ; Enter - конец ввода
-    je .done           ; 
-
-    cmp al, 0x08       ; Backspace
-    je .backspace      ; 
-
-    stosb              ; Пишем символ в буфер (а если буфер переполнится? да похуй)
-    mov ah, 0x0E       ; Выводим символ (чтобы пользователь видел, как он хуйню пишет)
-    int 0x10           ; 
-    loop .read_char    ; 
-
-
-.backspace:
-    cmp cx, 128
-    je .read_char
-    dec di
-    inc cx
-    mov ah, 0x0E
-    mov al, 0x08
-    int 0x10
-    mov al, ' '
-    int 0x10
-    mov al, 0x08
-    int 0x10
-    jmp .read_char
-
-.done:
-    mov al, 0x00
-    stosb
-    call print_newline
-    ret
-
-parse_command:
-    mov si, input_buffer
-    mov di, cmd_help
-    call compare_strings
-    jc .check_ls
-
-; --------------------- Команды  ---------------------
-
-.help:
-    mov si, help_msg
-    call print_string
-    call print_newline
-    ret
-
-.check_ls:
-    mov di, cmd_ls
-    call compare_strings
-    jc .check_mkdir
-
-.ls:
-    mov si, ls_msg
-    call print_string
-    call print_newline
-    ret
-
-.check_mkdir:
-    mov di, cmd_mkdir
-    call compare_strings
-    jc .check_rmdir
-
-.mkdir:
-    mov si, mkdir_msg
-    call print_string
-    call print_newline
-    ret
-
-.check_rmdir:
-    mov di, cmd_rmdir
-    call compare_strings
-    jc .check_send
-
-.rmdir:
-    mov si, rmdir_msg
-    call print_string
-    call print_newline
-    ret
-
-.check_send:
-    mov di, cmd_send
-    call compare_strings
-    jc .check_clear
-
-.send:
-    mov si, input_buffer + 5
-    call print_string
-    call print_newline
+    
     jmp main_loop
 
-.check_clear:
-    mov di, cmd_clear
-    call compare_strings
-    jc .check_restart
-
-.clear:
-    call clear_screen
-    ret
-
-.check_restart:
-    mov di, cmd_restart
-    call compare_strings
-    jc .check_regstat
-
-.restart:
-    jmp 0xFFFF:0x0000
-
-.check_regstat:
-    mov di, cmd_regstat
-    call compare_strings
-    jc .check_gui
-
-.regstat:
-    call print_registers
-    ret
-
-.check_gui:
-    mov di, cmd_gui
-    call compare_strings
-    jc .unknown_cmd
-
-.gui:
-    call start_gui
-    ret
-
-.unknown_cmd:
-    mov si, unknown_cmd_msg
+; #################### ГЛАВНЫЙ ЦИКЛ ####################
+main_loop:
+    mov si, prompt
     call print_string
-    call print_newline
-    ret
+    
+    call read_input
+    call parse_command
+    
+    jmp main_loop
 
-compare_strings:
-    push si
-    push di
-    push cx
 
-.compare_loop:
-    lodsb
-    scasb
-    jne .not_equal
 
-    test al, al
-    jz .equal
-
-    cmp al, ' '
-    je .equal
-
-    jmp .compare_loop
-
-.equal:
-    clc
-    jmp .done
-
-.not_equal:
-    stc
-
-.done:
-    pop cx
-    pop di
-    pop si
-    ret
-
-; Графическая оболочка
-; ########################## ГУИ (ГОВНО-ИНТЕРФЕЙС) ##########################
+; ################### GUI ###############################
 start_gui:
-    mov si, gui_start_msg  ; "Starting GUI" - звучит гордо, но это пиздеж
-    call print_string      ; 
-    call print_newline     ; 
-
-    mov ax, 0x13          ; Переключаемся в режим 320x200 (как в 90-е, блядь)
-    int 0x10              ; 
-
-    call draw_interface   ; Рисуем интерфейс (криво, но бесплатно)
-
-    call handle_input     ; Обрабатываем ввод (никак, на самом деле)
-
-    mov ax, 0x03          ; Возвращаемся в текстовый режим (спасибо, что не сломалось)
-    int 0x10              ; 
-    ret                   ; 
-
-
-draw_interface:
-    ; Отрисовка фона
+    ; Переключение в графический режим 320x200 256 цветов
+    mov ax, 0x13
+    int 0x10
+    
+    ; Установка сегмента видеопамяти
     mov ax, 0xA000
     mov es, ax
-    xor di, di
-    mov cx, 320 * 200
-    mov al, 0x1F  ; Синий цвет
-    rep stosb
-
-    ; Отрисовка прямоугольника (кнопка)
-    mov cx, 100  ; X
-    mov dx, 80   ; Y
-    mov si, 120  ; Ширина
-    mov di, 40   ; Высота
-    mov al, 0x2F ; Цвет
-    call draw_rectangle
-
-    ; Отрисовка текста
-    mov si, gui_msg
-    mov cx, 110  ; X
-    mov dx, 90   ; Y
-    call draw_text
-
-    ret
-
-handle_input:
-    ; Ожидание нажатия клавиши
+    
+    ; Рисуем фон (синий)
+    call draw_background
+    
+    ; Рисуем кнопки
+    call draw_buttons
+    
+    ; Основной цикл GUI
+.gui_loop:
+    ; Ожидаем нажатия клавиши
     mov ah, 0x00
     int 0x16
-
-    ; Выход по нажатию ESC
+    
+    ; Проверка на Escape для выхода
     cmp al, 0x1B
-    je .exit
+    je .exit_gui
+    
+    ; Проверка на F1 (Help)
+    cmp al, 0x3B  ; Scan code F1
+    je .help_pressed
+    
+    ; Проверка на F2 (Reboot)
+    cmp al, 0x3C  ; Scan code F2
+    je .reboot_pressed
+    
+    jmp .gui_loop
 
-    jmp handle_input
+.help_pressed:
+    call show_help_message
+    jmp .gui_loop
 
-.exit:
+.reboot_pressed:
+    call do_reboot
+    jmp .gui_loop
+
+.exit_gui:
+    ; Возврат в текстовый режим
+    mov ax, 0x03
+    int 0x10
     ret
 
-draw_rectangle:
-    ; Рисуем прямоугольник
-    ; Вход: CX = X, DX = Y, SI = ширина, DI = высота, AL = цвет
+draw_background:
+    ; Рисуем градиентный фон
+    xor di, di
+    mov cx, 320
+    mov dx, 200
+    mov al, 0x01  ; Начальный цвет (синий)
+.y_loop:
+    push cx
+    mov cx, 320
+.x_loop:
+    mov [es:di], al
+    inc di
+    loop .x_loop
+    inc al        ; Изменяем цвет для градиента
+    pop cx
+    dec dx
+    jnz .y_loop
+    ret
+
+draw_buttons:
+    ; Кнопка 1 (Help)
+    mov cx, 50    ; X
+    mov dx, 30    ; Y
+    mov si, 100   ; Ширина
+    mov di, 30    ; Высота
+    mov al, 0x04  ; Красный
+    call draw_button
+    mov si, btn_help_text
+    mov cx, 70
+    mov dx, 40
+    call draw_text
+    
+    ; Кнопка 2 (Reboot)
+    mov cx, 50
+    mov dx, 80
+    mov si, 100
+    mov di, 30
+    mov al, 0x02  ; Зеленый
+    call draw_button
+    mov si, btn_reboot_text
+    mov cx, 70
+    mov dx, 90
+    call draw_text
+    
+    ret
+
+draw_button:
+    ; Рисуем прямоугольник с рамкой
     pusha
     mov bx, dx
     add bx, di
+    
+    ; Внешняя рамка (темнее)
+    mov ah, al
+    sub ah, 0x02
+    jnc .no_underflow
+    mov ah, 0x00
+
+.no_underflow:
+    
 .outer_loop:
     cmp dx, bx
     je .done
     push cx
     push si
 .inner_loop:
-    ; Вычисляем адрес пикселя: di = (dx * 320) + cx
-    mov ax, dx      ; ax = dx
-    mov bx, 320     ; bx = 320
-    mul bx          ; ax = dx * 320
-    add ax, cx      ; ax = (dx * 320) + cx
-    mov di, ax      ; di = (dx * 320) + cx
-    mov [es:di], al
+    ; Проверка границ для рамки
+    mov [es:di], ah  ; Рамка
     inc cx
     dec si
     jnz .inner_loop
@@ -293,13 +158,76 @@ draw_rectangle:
     pop cx
     inc dx
     jmp .outer_loop
+    
+    ; Внутренняя заливка
+    add cx, 2
+    add dx, 2
+    sub si, 4
+    sub di, 4
+    mov bx, dx
+    add bx, di
+    sub bx, 4
+.fill_loop:
+    cmp dx, bx
+    jg .done
+    push cx
+    push si
+.fill_inner:
+    mov [es:di], al
+    inc di
+    dec si
+    jnz .fill_inner
+    pop si
+    pop cx
+    inc dx
+    jmp .fill_loop
+    
 .done:
     popa
     ret
 
+draw_gui_text:
+    ; Рисуем текст в графическом режиме
+    pusha
+    mov bx, dx
+    mov dx, cx
+.text_loop:
+    lodsb
+    or al, al
+    jz .done
+    
+    ; Сохраняем позицию
+    push si
+    push dx
+    push bx
+    
+    ; Установка курсора
+    mov ah, 0x02
+    xor bh, bh
+    mov dh, bl
+    mov dl, dl
+    int 0x10
+    
+    ; Вывод символа
+    mov ah, 0x0E
+    mov bl, 0x0F  ; Белый цвет
+    int 0x10
+    
+    ; Восстанавливаем позицию
+    pop bx
+    pop dx
+    pop si
+    
+    inc dx
+    jmp .text_loop
+
+    .done:
+    popa
+    ret
+
 draw_text:
-    ; Рисуем текст
-    ; Вход: SI = строка, CX = X, DX = Y
+    ; Рисуем текст в графическом режиме
+    ; Вход: SI=текст, CX=X, DX=Y
     pusha
     mov ax, 0xA000
     mov es, ax
@@ -315,144 +243,435 @@ draw_text:
     popa
     ret
 
-; #############################################################
-; #                        Логирование                        #
-; #                                                           #
-; #############################################################
-prompt db 'V:/> ', 0
-header_msg db 'Eva-OS VioletKernel - version 0.008.573. Running in 16-bits mode!', 0
+show_help_message:
+    ; Временный переход в текстовый режим
+    pusha
+    mov ax, 0x03
+    int 0x10
+    
+    mov si, gui_help_full_msg
+    call print_string
+    
+    ; Ждем любую клавишу
+    mov ah, 0x00
+    int 0x16
+    
+    ; Возврат в графический режим
+    mov ax, 0x13
+    int 0x10
+    popa
+    ret
 
-unknown_cmd_msg db "Your command is not recognized as an internal or external command or operable program.", 0
-help_msg db "Commands: help, ls, mkdir, rmdir, send, clear, restart, regstat, gui", 0
-ls_msg db "All dirs:", 0
-mkdir_msg db "Creating directory...", 0
-rmdir_msg db "Removing directory...", 0
-restart_msg db "Restarting system...", 0
-gui_msg db "Press ESC to exit", 0
+do_reboot:
+    mov si, gui_reboot_msg
+    call draw_gui_text
+    
+    ; Задержка
+    mov cx, 0xFFFF
+.delay:
+    nop
+    loop .delay
+    
+    ; Перезагрузка
+    int 0x19
+    ret
 
-; --------------------- Команды ввода  ---------------------
+; #################### ФУНКЦИЯ ЧТЕНИЯ ВВОДА ####################
+read_input:
+    mov di, input_buffer
+    mov cx, 128
+    xor bx, bx
+    
+.read_char:
+    mov ah, 0x00
+    int 0x16
+    
+    cmp al, 0x0D       ; Enter
+    je .done
+    
+    cmp al, 0x08       ; Backspace
+    je .backspace
+    
+    cmp bx, cx         ; Проверка переполнения буфера
+    jge .read_char
+    
+    stosb
+    inc bx
+    mov ah, 0x0E
+    int 0x10
+    jmp .read_char
+    
+.backspace:
+    test bx, bx
+    jz .read_char
+    dec di
+    dec bx
+    mov ah, 0x0E
+    mov al, 0x08
+    int 0x10
+    mov al, ' '
+    int 0x10
+    mov al, 0x08
+    int 0x10
+    jmp .read_char
+    
+.done:
+    mov al, 0
+    stosb
+    call print_newline
+    ret
 
-cmd_help db "help", 0
-cmd_ls db "ls", 0
-cmd_mkdir db "mkdir", 0
-cmd_rmdir db "rmdir", 0
-cmd_send db "send", 0
-cmd_clear db "clear", 0 
-cmd_restart db "restart", 0
-cmd_regstat db "regstat", 0
-cmd_gui db "gui", 0
+; #################### ФУНКЦИЯ РАЗБОРА КОМАНД ####################
+parse_command:
+    mov si, input_buffer
+    
+    ; Пропуск пустых команд
+    cmp byte [si], 0
+    je .empty
+    
+    ; Удаление пробелов в начале
+.trim_loop:
+    lodsb
+    cmp al, ' '
+    je .trim_loop
+    dec si
+    
+    ; Сравнение команд
+    mov di, cmd_help
+    call strcmp
+    jnc .help
+    
+    mov di, cmd_ls
+    call strcmp
+    jnc .ls
+    
+    mov di, cmd_cat
+    call strcmp
+    jnc .cat
+    
+    mov di, cmd_echo
+    call strcmp
+    jnc .echo
+    
+    mov di, cmd_clear
+    call strcmp
+    jnc .clear
+    
+    mov di, cmd_reboot
+    call strcmp
+    jnc .reboot
+    
+    mov di, cmd_meminfo
+    call strcmp
+    jnc .meminfo
+    
+    mov di, cmd_date
+    call strcmp
+    jnc .date
 
-input_buffer times 128 db 0
+    mov di, cmd_gui 
+    call strcmp
+    jnc .gui
+    
+    ; Неизвестная команда
+    mov si, unknown_cmd_msg
+    call print_string
+    call print_newline
+    ret
+    
+.empty:
+    ret
+    
+.help:
+    mov si, help_msg
+    call print_string
+    call print_newline
+    ret
+    
+.ls:
+    mov si, ls_msg
+    call print_string
+    call print_newline
+    
+    mov si, ls_dummy_files
+    call print_string
+    call print_newline
+    ret
+    
+.cat:
+    ; Проверка наличия имени файла
+    mov si, input_buffer + 4
+    cmp byte [si], 0
+    je .cat_no_file
+    
+    mov di, dummy_filename
+    call strcmp
+    jnc .cat_file
+    
+.cat_no_file:
+    mov si, file_not_found_msg
+    call print_string
+    call print_newline
+    ret
+    
+.cat_file:
+    mov si, dummy_file_content
+    call print_string
+    call print_newline
+    ret
+    
+.echo:
+    mov si, input_buffer + 5
+    cmp byte [si], 0
+    je .echo_empty
+    
+    call print_string
+    call print_newline
+    ret
+    
+.echo_empty:
+    call print_newline
+    ret
+    
+.clear:
+    call clear_screen
+    ret
+    
+.reboot:
+    mov si, reboot_msg
+    call print_string
+    call print_newline
+    
+    ; Задержка перед перезагрузкой
+    mov cx, 0xFFFF
+.delay_loop:
+    nop
+    loop .delay_loop
+    
+    ; Перезагрузка через BIOS
+    int 0x19
+    ret
+    
+.meminfo:
+    mov si, meminfo_msg
+    call print_string
+    
+    ; Получаем и выводим размер памяти
+    int 0x12
+    call print_dec
+    mov si, mem_kb_msg
+    call print_string
+    call print_newline
+    ret
+    
+.date:
+    ; Получаем дату от BIOS
+    mov ah, 0x04
+    int 0x1A
+    
+    ; Выводим дату (ДД/ММ/ГГГГ)
+    mov al, dl      ; День
+    call print_bcd
+    mov al, '/'
+    call print_char
+    
+    mov al, dh      ; Месяц
+    call print_bcd
+    mov al, '/'
+    call print_char
+    
+    mov al, ch      ; Год (старшие разряды)
+    call print_bcd
+    mov al, cl      ; Год (младшие разряды)
+    call print_bcd
+    
+    call print_newline
+    
+    ; Получаем время от BIOS
+    mov ah, 0x02
+    int 0x1A
+    
+    ; Выводим время (ЧЧ:ММ:СС)
+    mov al, ch      ; Часы
+    call print_bcd
+    mov al, ':'
+    call print_char
+    
+    mov al, cl      ; Минуты
+    call print_bcd
+    mov al, ':'
+    call print_char
+    
+    mov al, dh      ; Секунды
+    call print_bcd
+    
+    call print_newline
+    ret
 
+.gui:
+    call start_gui
+    ret
+
+; #################### ФУНКЦИЯ СРАВНЕНИЯ СТРОК ####################
+strcmp:
+    pusha
+.compare_loop:
+    lodsb           ; Берем символ из SI
+    mov bl, [di]    ; Берем символ из DI
+    inc di
+    
+    cmp al, bl
+    jne .not_equal
+    
+    test al, al     ; Проверка конца строки
+    jz .equal
+    
+    jmp .compare_loop
+    
+.equal:
+    popa
+    clc             ; CF = 0 - строки равны
+    ret
+    
+.not_equal:
+    popa
+    stc             ; CF = 1 - строки разные
+    ret
+
+; #################### ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ####################
 print_string:
     lodsb
-    or al, al
+    test al, al
     jz .done
     mov ah, 0x0E
     int 0x10
     jmp print_string
-
 .done:
     ret
 
-print_newline:
+print_char:
     mov ah, 0x0E
+    int 0x10
+    ret
+
+print_newline:
     mov al, 0x0D
-    int 0x10
+    call print_char
     mov al, 0x0A
-    int 0x10
+    call print_char
     ret
 
 clear_screen:
     mov ax, 0x0600
-    mov bh, 0x07
-    mov cx, 0x0000
+    xor cx, cx
     mov dx, 0x184F
+    mov bh, 0x07
     int 0x10
+    
+    ; Установка курсора в начало
     mov ah, 0x02
-    mov bh, 0x00
-    mov dx, 0x0000
+    xor bh, bh
+    xor dx, dx
     int 0x10
-    jmp start
-    ret
-
-print_registers:
-    pusha
-
-    mov si, reg_ax_msg
-    call print_string
-    mov ax, [esp + 14]
-    call print_hex
-
-    mov si, reg_bx_msg
-    call print_string
-    mov ax, [esp + 12]
-    call print_hex
-
-    mov si, reg_cx_msg
-    call print_string
-    mov ax, [esp + 10]
-    call print_hex
-
-    mov si, reg_dx_msg
-    call print_string
-    mov ax, [esp + 8]
-    call print_hex
-
-    mov si, reg_si_msg
-    call print_string
-    mov ax, [esp + 6]
-    call print_hex
-
-    mov si, reg_di_msg
-    call print_string
-    mov ax, [esp + 4]
-    call print_hex
-
-    mov si, reg_bp_msg
-    call print_string
-    mov ax, [esp + 2]
-    call print_hex
-
-    mov si, reg_sp_msg
-    call print_string
-    mov ax, [esp]
-    call print_hex
-
-    popa
     ret
 
 print_hex:
     push cx
     mov cx, 4
-.print_hex_loop:
+.hex_loop:
     rol ax, 4
     push ax
     and al, 0x0F
-    cmp al, 9
-    jbe .print_hex_digit
-    add al, 7
-.print_hex_digit:
     add al, '0'
-    mov ah, 0x0E
-    int 0x10
+    cmp al, '9'
+    jbe .print_digit
+    add al, 7
+.print_digit:
+    call print_char
     pop ax
-    loop .print_hex_loop
+    loop .hex_loop
     pop cx
     ret
 
-; --------------------- Регистры  ---------------------
+print_dec:
+    pusha
+    xor cx, cx
+    mov bx, 10
+.div_loop:
+    xor dx, dx
+    div bx
+    push dx
+    inc cx
+    test ax, ax
+    jnz .div_loop
+    
+.print_loop:
+    pop ax
+    add al, '0'
+    call print_char
+    loop .print_loop
+    popa
+    ret
 
-reg_ax_msg db "AX: ", 0
-reg_bx_msg db " BX: ", 0
-reg_cx_msg db " CX: ", 0
-reg_dx_msg db " DX: ", 0
-reg_si_msg db " SI: ", 0
-reg_di_msg db " DI: ", 0
-reg_bp_msg db " BP: ", 0
-reg_sp_msg db " SP: ", 0
+print_bcd:
+    push ax
+    shr al, 4
+    add al, '0'
+    call print_char
+    pop ax
+    and al, 0x0F
+    add al, '0'
+    call print_char
+    ret
 
-kernel_start_msg db '[ OK ] [ KERNEL ] - Kernel started successfully', 0
-kernel_init_msg db '[ OK ] [ KERNEL ] - Initializing kernel...', 0
-main_loop_start_msg db '[ OK ] [ KERNEL ] - Entering main loop...', 0
-gui_start_msg db '[ OK ] [ KERNEL ] - Starting GUI...', 0
+; #################### ДАННЫЕ ####################
+welcome_msg db 'Eva-OS - 0.008.573,  VioletKernel - ALPHA ', 0
+prompt db 'V/:>_: ', 0
+unknown_cmd_msg db 'Error: Command not reconized. Type "help" for display all commands.', 0
+help_msg db 'Available commands:', 0Dh, 0Ah
+         db 'help    - Show this help', 0Dh, 0Ah
+         db 'ls      - List files', 0Dh, 0Ah
+         db 'cat     - Show file content', 0Dh, 0Ah
+         db 'echo    - Print text', 0Dh, 0Ah
+         db 'clear   - Clear screen', 0Dh, 0Ah
+         db 'reboot  - Reboot system', 0Dh, 0Ah
+         db 'meminfo - Show memory info', 0Dh, 0Ah
+         db 'date    - Show date and time', 0Dh, 0Ah
+         db 'gui     - Enable GUI for this session', 0
+ls_msg db 'Files in current directory:', 0
+ls_dummy_files db 'file1.txt  file2.txt  README', 0
+file_not_found_msg db 'Error: File not found', 0
+dummy_filename db 'file1.txt', 0
+dummy_file_content db 'This is content of file1.txt', 0
+reboot_msg db 'System rebooting...', 0
+meminfo_msg db 'Total memory: ', 0
+mem_kb_msg db ' KB', 0
+
+; Список команд
+cmd_help db 'help', 0
+cmd_ls db 'ls', 0
+cmd_cat db 'cat', 0
+cmd_echo db 'echo', 0
+cmd_clear db 'clear', 0
+cmd_reboot db 'reboot', 0
+cmd_meminfo db 'meminfo', 0
+cmd_date db 'date', 0
+cmd_gui db 'gui', 0
+
+input_buffer times 128 db 0
+
+; text for gui
+; Тексты для GUI
+btn_help_text db 'F1 - HELP', 0
+btn_reboot_text db 'F2 - REBOOT', 0
+gui_help_msg db 'Press F1 for Help, F2 to Reboot, ESC to Exit', 0
+gui_help_full_msg db 'GUI Help:', 0Dh, 0Ah
+                 db 'F1 - Show this help', 0Dh, 0Ah
+                 db 'F2 - Reboot system', 0Dh, 0Ah
+                 db 'ESC - Return to console', 0Dh, 0Ah, 0
+gui_reboot_msg db 'Rebooting system...', 0
+
+; Выравнивание размера ядра
+kernel_size equ $ - $$
+padding_size equ (512 - (kernel_size % 512)) % 512
+times padding_size db 0
