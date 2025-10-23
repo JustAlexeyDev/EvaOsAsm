@@ -8,6 +8,5 @@ EvaOS-16/Compiler/Windows/builder.exe
 #x86_64
 EvaOS-86_64/kernel/*.o
 EvaOS-86_64/kernel/*.bin
-EvaOS-86_64/iso/*.o
-EvaOS-86_64/iso/*.bin
-EvaOS-86_64/iso/*.iso
+EvaOS-86_64/iso
+
