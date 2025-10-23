@@ -4,20 +4,13 @@ SECTIONS
 {
     . = 1M;
 
-    .text BLOCK(4K) : ALIGN(4K)
+    .boot :
     {
-        *(.multiboot)
+        KEEP(*(.multiboot_header))
+    }
+
+    .text :
+    {
         *(.text)
-    }
-
-    .data BLOCK(4K) : ALIGN(4K)
-    {
-        *(.data)
-    }
-
-    .bss BLOCK(4K) : ALIGN(4K)
-    {
-        *(COMMON)
-        *(.bss)
     }
 }

@@ -10,11 +10,11 @@ LD_FLAGS = -n -T kernel/linker.ld
 
 # Директории и файлы
 KERNEL_DIR = kernel
-GRUB_DIR = grub
 ISO_DIR = iso
+GRUB_DIR = grub
 
-KERNEL_SRC = $(KERNEL_DIR)/kernel.asm
-KERNEL_OBJ = $(KERNEL_DIR)/kernel.o
+KERNEL_SRCS = $(KERNEL_DIR)/header.asm $(KERNEL_DIR)/main.asm
+KERNEL_OBJS = $(KERNEL_SRCS:.asm=.o)
 KERNEL_BIN = $(KERNEL_DIR)/kernel.bin
 GRUB_CFG = $(GRUB_DIR)/grub.cfg
 ISO_IMAGE = eva-os.iso
@@ -25,10 +25,10 @@ ISO_IMAGE = eva-os.iso
 all: $(ISO_IMAGE)
 
 # Сборка ядра
-$(KERNEL_BIN): $(KERNEL_OBJ)
+$(KERNEL_BIN): $(KERNEL_OBJS)
 	$(LD) $(LD_FLAGS) -o $@ $^
 
-$(KERNEL_OBJ): $(KERNEL_SRC)
+%.o: %.asm
 	$(ASM) $(ASM_FLAGS) $< -o $@
 
 # Создание ISO образа
@@ -38,18 +38,14 @@ $(ISO_IMAGE): $(KERNEL_BIN) $(GRUB_CFG)
 	cp $(GRUB_CFG) $(ISO_DIR)/boot/grub/
 	$(GRUB_MKRESCUE) -o $@ $(ISO_DIR)
 
-# Запуск ISO образа в QEMU
+# Запуск в QEMU
 run: $(ISO_IMAGE)
 	$(QEMU) -cdrom $(ISO_IMAGE)
 
 # Очистка
 clean:
-	rm -rf $(KERNEL_OBJ) $(KERNEL_BIN) $(ISO_IMAGE) $(ISO_DIR)
+	rm -rf $(KERNEL_OBJS) $(KERNEL_BIN) $(ISO_IMAGE) $(ISO_DIR)
 
-# Показать помощь
+# Помощь
 help:
-	@echo "Доступные цели:"
-	@echo "  all     - Создать ISO образ ($(ISO_IMAGE))"
-	@echo "  run     - Запустить ISO образ в QEMU"
-	@echo "  clean   - Очистить сгенерированные файлы"
-	@echo "  help    - Показать эту справку"
+	@echo "Цели: all, run, clean, help"
