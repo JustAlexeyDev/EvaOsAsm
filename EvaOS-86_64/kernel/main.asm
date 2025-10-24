@@ -2,27 +2,92 @@ global _start
 
 section .bss
 align 4096
-; таблицы страниц для x64 режима
 pml4_table:
     resb 4096
 pdp_table:
     resb 4096
 pd_table:
-    resb 4096  
+    resb 4096
+
+section .data
+; Сообщения для вывода
+msg_check_lm:    db "Check_long_mode", 0
+msg_setup_paging:db "Setup_paging", 0
+msg_enable_lm:   db "Enable_long_mode", 0
+msg_x64_ready:   db "x86_64 mode", 0
+msg_kernel_start:db "Starting VioletKernel...", 0
+msg_ok:          db " [OK]", 0
 
 section .text
 bits 32
 _start:
     mov esp, stack_top
-
-    call check_long_mode
     
+    ; Очищаем экран
+    call clear_screen_32
+    
+    ; Проверка Long Mode
+    mov esi, msg_check_lm
+    mov edi, 0xb8000
+    call print_string_32
+    call check_long_mode
+    mov esi, msg_ok
+    mov edi, 0xb8000 + 15 * 2
+    mov ah, 0x0a
+    call print_string_32
+    
+    ; Настройка страничной организации
+    mov esi, msg_setup_paging
+    mov edi, 0xb8000 + 160
+    call print_string_32
     call setup_paging
-
+    mov esi, msg_ok
+    mov edi, 0xb8000 + 160 + 12 * 2
+    mov ah, 0x0a
+    call print_string_32
+    
+    ; Long Mode
+    mov esi, msg_enable_lm
+    mov edi, 0xb8000 + 320
+    call print_string_32
     call enable_long_mode
-
+    mov esi, msg_ok
+    mov edi, 0xb8000 + 320 + 16 * 2
+    mov ah, 0x0a
+    call print_string_32
+    
+    ; Переход в 64-битный режим
     lgdt [gdt64.pointer]
     jmp gdt64.code:long_mode_start
+
+; Функция очистки экрана (32-битная)
+clear_screen_32:
+    mov edi, 0xb8000
+    mov ecx, 80 * 25
+    mov ax, 0x0f20
+.clear_loop:
+    mov [edi], ax
+    add edi, 2
+    loop .clear_loop
+    ret
+
+; Функция вывода строки (32-битная)
+print_string_32:
+    push eax
+    push esi
+    push edi
+.loop:
+    lodsb
+    test al, al
+    jz .done
+    mov [edi], ax
+    add edi, 2
+    jmp .loop
+.done:
+    pop edi
+    pop esi
+    pop eax
+    ret
 
 check_long_mode:
     pushfd
@@ -49,37 +114,41 @@ check_long_mode:
 
 .no_cpuid:
 .no_long_mode:
-    mov dword [0xb8000], 0x4f524f45  ; "ER"
-    mov dword [0xb8004], 0x4f3a4f52  ; "R:"
-    mov dword [0xb8008], 0x4f204f20  ; "  "
-    mov dword [0xb800C], 0x4f4c4f36  ; "6L"
+    mov esi, .error_msg
+    mov edi, 0xb8000 + 400
+    mov ah, 0x4f
+    call print_string_32
     hlt
+.error_msg: db "ERROR: Long Mode not supported", 0
 
 setup_paging:
+    ; Очищаем таблицы
     mov edi, pml4_table
-    mov ecx, 4096
+    mov ecx, 4096 * 3
     xor eax, eax
     rep stosb
 
+    ; PML4 -> PDP
     mov eax, pdp_table
-    or eax, 0b11  ; Present + Writable
+    or eax, 0b11
     mov [pml4_table], eax
 
+    ; PDP -> PD  
     mov eax, pd_table
-    or eax, 0b11  ; Present + Writable
+    or eax, 0b11
     mov [pdp_table], eax
 
+    ; Заполняем PD 2MB страницами
     mov ecx, 0
     mov eax, 0x00000000
     or eax, 0b10000011
-
+    
 .loop_pages:
     mov [pd_table + ecx * 8], eax
     add eax, 0x200000
     inc ecx
     cmp ecx, 512
     jl .loop_pages
-    
     ret
 
 enable_long_mode:
@@ -98,7 +167,6 @@ enable_long_mode:
     mov eax, cr0
     or eax, 1 << 31
     mov cr0, eax
-
     ret
 
 gdt64:
@@ -109,38 +177,47 @@ gdt64:
     dw $ - gdt64 - 1
     dq gdt64
 
+; 64-битный код
 section .text
 bits 64
 long_mode_start:
-    mov edi, 0xb8000
-    mov rcx, 500
-    mov rax, 0x0f200f200f200f20  ; Черные пробелы
-    rep stosq
-
-    ; Выводим "x86_64 - OK" зеленым цветом
-    mov byte [0xb8000], 'x'
-    mov byte [0xb8002], '8'
-    mov byte [0xb8004], '6'
-    mov byte [0xb8006], '_'
-    mov byte [0xb8008], '6'
-    mov byte [0xb800a], '4'
-    mov byte [0xb800c], ' '
-    mov byte [0xb800e], '-'
-    mov byte [0xb8010], ' '
-    mov byte [0xb8012], 'O'
-    mov byte [0xb8014], 'K'
-
-    mov ecx, 11
-    mov edi, 0xb8001
-.set_color:
-    mov byte [edi], 0x2f
-    add edi, 2
-    loop .set_color
-
+    ; Выводим статус x86_64
+    mov rsi, msg_x64_ready
+    mov rdi, 0xb8000 + 480
+    call print_string_64
+    mov rsi, msg_ok
+    mov rdi, 0xb8000 + 480 + 11 * 2
+    mov ah, 0x0a
+    call print_string_64
+    
+    ; Выводим сообщение о запуске ядра
+    mov rsi, msg_kernel_start
+    mov rdi, 0xb8000 + 640
+    mov ah, 0x0e
+    call print_string_64
+    
     hlt
+
+; Функция вывода строки (64-битная)
+print_string_64:
+    push rax
+    push rsi
+    push rdi
+.loop:
+    lodsb
+    test al, al
+    jz .done
+    mov [rdi], ax
+    add rdi, 2
+    jmp .loop
+.done:
+    pop rdi
+    pop rsi
+    pop rax
+    ret
 
 section .bss
 align 16
 stack_bottom:
-    resb 4096 * 4 ;16KB
+    resb 4096 * 4
 stack_top:
