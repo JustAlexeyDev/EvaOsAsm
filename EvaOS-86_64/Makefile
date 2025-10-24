@@ -3,18 +3,27 @@ ASM = nasm
 LD = ld
 GRUB_MKRESCUE = grub-mkrescue
 QEMU = qemu-system-x86_64
+GCC = gcc
 
 # Флаги
 ASM_FLAGS = -f elf64
 LD_FLAGS = -n -T kernel/linker.ld
+GCC_FLAGS = -c -ffreestanding -nostdlib -nostartfiles -nodefaultlibs -m64 -I.
 
 # Директории и файлы
 KERNEL_DIR = kernel
 ISO_DIR = iso
 GRUB_DIR = grub
 
-KERNEL_SRCS = $(KERNEL_DIR)/header.asm $(KERNEL_DIR)/main.asm
-KERNEL_OBJS = $(KERNEL_SRCS:.asm=.o)
+# Исходные файлы
+ASM_SRCS = $(KERNEL_DIR)/header.asm $(KERNEL_DIR)/main.asm
+C_SRCS = $(KERNEL_DIR)/kernel.c
+
+# Объектные файлы
+ASM_OBJS = $(ASM_SRCS:.asm=.o)
+C_OBJS = $(C_SRCS:.c=.o)
+KERNEL_OBJS = $(ASM_OBJS) $(C_OBJS)
+
 KERNEL_BIN = $(KERNEL_DIR)/kernel.bin
 GRUB_CFG = $(GRUB_DIR)/grub.cfg
 ISO_IMAGE = eva-os.iso
@@ -24,12 +33,17 @@ ISO_IMAGE = eva-os.iso
 
 all: $(ISO_IMAGE)
 
-# Сборка ядра
+# Сборка ядра (линковка всех объектных файлов)
 $(KERNEL_BIN): $(KERNEL_OBJS)
 	$(LD) $(LD_FLAGS) -o $@ $^
 
+# Компиляция ассемблерных файлов
 %.o: %.asm
 	$(ASM) $(ASM_FLAGS) $< -o $@
+
+# Компиляция C файлов
+%.o: %.c
+	$(GCC) $(GCC_FLAGS) $< -o $@
 
 # Создание ISO образа
 $(ISO_IMAGE): $(KERNEL_BIN) $(GRUB_CFG)

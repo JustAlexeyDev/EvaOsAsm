@@ -9,12 +9,17 @@ SECTIONS
         KEEP(*(.multiboot_header))
     }
 
-    .text :
+    .text : ALIGN(4K)
     {
         *(.text)
     }
 
-    .bss :
+    .data : ALIGN(4K)
+    {
+        *(.data)
+    }
+
+    .bss : ALIGN(4K)
     {
         *(.bss)
     }

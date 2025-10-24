@@ -1,4 +1,5 @@
 global _start
+extern kernel_main
 
 section .bss
 align 4096
@@ -15,7 +16,7 @@ msg_check_lm:    db "Check_long_mode", 0
 msg_setup_paging:db "Setup_paging", 0
 msg_enable_lm:   db "Enable_long_mode", 0
 msg_x64_ready:   db "x86_64 mode", 0
-msg_kernel_start:db "Starting VioletKernel...", 0
+msg_call_kernel:db "Starting VioletKernel...", 0
 msg_ok:          db " [OK]", 0
 
 section .text
@@ -191,10 +192,16 @@ long_mode_start:
     call print_string_64
     
     ; Выводим сообщение о запуске ядра
-    mov rsi, msg_kernel_start
+    mov rsi, msg_call_kernel
     mov rdi, 0xb8000 + 640
     mov ah, 0x0e
     call print_string_64
+    mov rsi, msg_ok
+    mov rdi, 0xb8000 + 640 + 19 * 2
+    mov ah, 0x0a
+    call print_string_64
+
+    call kernel_main
     
     hlt
 
