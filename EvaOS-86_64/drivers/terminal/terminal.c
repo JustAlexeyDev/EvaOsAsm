@@ -1,6 +1,7 @@
 #include "drivers/terminal/terminal.h"
 #include "drivers/terminal/vga.h"
 #include "drivers/ports/ports.h"
+#include <string.h>
 
 static size_t terminal_row;
 static size_t terminal_column;
@@ -82,12 +83,12 @@ void terminal_putchar(char c) {
     update_cursor(terminal_column, terminal_row);
 }
 
-void terminal_write(const char* data, size_t size) {
-    for(size_t i = 0; i < size; i++) {
+void terminal_write(const char* data) {
+    for(size_t i = 0; data[i] != '\0'; i++) {
         terminal_putchar(data[i]);
     }
 }
 
 void terminal_writestring(const char* data) {
-    terminal_write(data, strlen(data));
+    terminal_write(data);
 }
