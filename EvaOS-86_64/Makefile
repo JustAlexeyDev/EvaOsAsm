@@ -19,16 +19,21 @@ DRIVERS_DIR = drivers
 # Исходные файлы драйверов
 PORTS_SRCS = $(DRIVERS_DIR)/ports/ports.c
 TERMINAL_SRCS = $(DRIVERS_DIR)/terminal/terminal.c
+INTERRUPTS_SRCS = $(DRIVERS_DIR)/interrupts/idt.c $(DRIVERS_DIR)/interrupts/pic.c
+INTERRUPTS_ASM_SRCS = $(DRIVERS_DIR)/interrupts/isr.asm
 
 # Исходные файлы ядра
 ASM_SRCS = $(KERNEL_DIR)/header.asm $(KERNEL_DIR)/main.asm
 C_SRCS = $(KERNEL_DIR)/kernel.c
 
 # Все исходные файлы C
-ALL_C_SRCS = $(C_SRCS) $(PORTS_SRCS) $(TERMINAL_SRCS)
+ALL_C_SRCS = $(C_SRCS) $(PORTS_SRCS) $(TERMINAL_SRCS) $(INTERRUPTS_SRCS)
+
+# Все исходные файлы ASM
+ALL_ASM_SRCS = $(ASM_SRCS) $(INTERRUPTS_ASM_SRCS)
 
 # Объектные файлы
-ASM_OBJS = $(ASM_SRCS:.asm=.o)
+ASM_OBJS = $(ALL_ASM_SRCS:.asm=.o)
 C_OBJS = $(ALL_C_SRCS:.c=.o)
 KERNEL_OBJS = $(ASM_OBJS) $(C_OBJS)
 
@@ -41,7 +46,7 @@ ISO_IMAGE = eva-os.iso
 
 all: $(ISO_IMAGE)
 
-# Сборка ядра (линковка всех объектных файлов)
+# Сборка ядра
 $(KERNEL_BIN): $(KERNEL_OBJS)
 	$(LD) $(LD_FLAGS) -o $@ $^
 
